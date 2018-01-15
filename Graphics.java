@@ -17,6 +17,7 @@ public class Graphics  extends JComponent implements ChangeListener {
 	
 	final int HOUSE=1;
 	final int WATER=2;
+	final int CLEARANCE=3;
 	final int NOTHING=0;
 	
 	JFrame frame;
@@ -41,21 +42,25 @@ public class Graphics  extends JComponent implements ChangeListener {
 				a = 255;
 				int code = matrix[x][y];
 				if(code == HOUSE) {
-					r = 250;   //red
-					g = 190;   //green
-					b = 190;   //blue
+					r = 155;   //red
+					g = 22;   //green
+					b = 11;   //blue
 					//gives red-ish
 				} else if (code == NOTHING) {
-					r = 100;   //red
-					g = 250;   //green
-					b = 100;   //blue
-					//gives greenish
+					r = 0;   //red
+					g = 104;   //green
+					b = 10;   //blue
+					//gives grass
 				} else if (code == WATER) {
 					r = 100;   //red
 					g = 100;   //green
 					b = 250;   //blue
 					//gives blueish
-				} else {
+				}  else if (code == CLEARANCE) {
+					r = 174;   //red
+					g = 137;   //green
+					b = 118;   //blue
+				}	else {
 					r = 255;   //red
 					g = 255;   //green
 					b = 255;   //blue
