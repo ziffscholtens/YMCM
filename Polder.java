@@ -10,9 +10,9 @@ public class Polder {
 	final double PERC_FAM = 0.5;
 	final double PERC_BUNG = 0.3;
 	final double PERC_MANS = 0.2;
-	final double MIN_CLEAR_FAM = 2;
-	final double MIN_CLEAR_BUNG = 3;
-	final double MIN_CLEAR_MANS = 6;
+	final static int MIN_CLEAR_FAM = 20;
+	final static int MIN_CLEAR_BUNG = 30;
+	final static int MIN_CLEAR_MANS = 60;
 	final double PRICE_FAM = 285000;
 	final double PRICE_BUNG = 399000;
 	final double PRICE_MANS = 610000;
