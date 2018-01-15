@@ -1,5 +1,4 @@
 package amstelhaege;
-import java.util.Arrays;
 
 import javax.swing.JFrame;
 
