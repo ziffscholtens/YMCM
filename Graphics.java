@@ -1,4 +1,4 @@
-package Heuristics;
+package amstelhaege;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
