@@ -31,11 +31,11 @@ public class House {
 	int clearance() {
 		int clearance = 0;
 		if(type.equals("mansion")) {
-			clearance = 60;
+			clearance = Polder.MIN_CLEAR_MANS;
 		} else if (type.equals("bungalow")) {
-			clearance = 30;
+			clearance = Polder.MIN_CLEAR_BUNG;
 		} else if (type.equals("famHouse")) {
-			clearance = 20;
+			clearance = Polder.MIN_CLEAR_FAM;
 		}
 		return clearance;
 	}
