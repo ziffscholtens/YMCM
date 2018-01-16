@@ -24,8 +24,8 @@ public class InitialPolder {
 	final static double PRICE_INC_MANS = 0.06;
 	final static int LEN1_FAM = 16;
 	final static int LEN2_FAM = 16;
-	final static int LEN1_BUNG = 15;
-	final static int LEN2_BUNG = 20;
+	final static int LEN1_BUNG = 20;
+	final static int LEN2_BUNG = 15;
 	final static int LEN1_MANS = 22;
 	final static int LEN2_MANS = 21;
 
@@ -63,6 +63,7 @@ public class InitialPolder {
 		}
 		generatePlaceHouse();
 		totalValue = totalValue();
+		System.out.println("first value = "+totalValue);
 		heuristic();
 		printTotalValue();
 
@@ -70,7 +71,7 @@ public class InitialPolder {
 
 	void heuristic(){
 		// heuristic is local optimum
-		for(int i = 0; i<100; i++){
+		for(int i = 0; i<500; i++){
 			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue);
 			world_matrix = copyWorld(heuristic.world_matrix);
 			houseList = copyHouseList(heuristic.houseList);
@@ -192,8 +193,8 @@ public class InitialPolder {
 				if(notOnHouse(k, house.y - h-1)) {
 					world_matrix[k][house.y-h-1] = CLEARANCE;
 				}
-				if(notOnHouse(k, house.y+house.len2+h+1)) {
-					world_matrix[k][house.y+house.len2+h+1] = CLEARANCE;
+				if(notOnHouse(k, house.y+house.len2+h)) {
+					world_matrix[k][house.y+house.len2+h] = CLEARANCE;
 				}
 			}
 
@@ -311,7 +312,7 @@ public class InitialPolder {
 					}
 				}
 				if(!outOfBounds(k, house.y+house.len2+clearance+1)) {
-					if(world_matrix[k][house.y+house.len2+clearance+1] == HOUSE) {
+					if(world_matrix[k][house.y+house.len2+clearance] == HOUSE) {
 						clear = false;
 					}
 				}
@@ -332,7 +333,7 @@ public class InitialPolder {
 			clearance ++;
 		}
 
-		return (int) (clearance-house.clearance())/10;
+		return (int) (clearance-house.clearance())/2;
 	}
 
 	double getValue(House house) {
@@ -350,8 +351,7 @@ public class InitialPolder {
 		}
 
 		int clearance = countClearance(house);
-		value = value + (clearance * (incWeight+1));
-
+		value = value * (clearance * (incWeight)+1);
 		house.setValue(value);
 		return value;
 	}

@@ -85,18 +85,17 @@ public class Graphics  extends JComponent implements ChangeListener {
 
 	public Graphics(JFrame frame) {
 		this.frame=frame;
-		double tempValue=0;
-		for (int i = 0; i<10;i++){
+		for (int i = 0; i<3;i++){
 			earth= new InitialPolder();
 			width=earth.POLDER_WIDTH;
 			height=earth.POLDER_HEIGHT;
 			matrix = earth.world_matrix;
-			if(earth.totalValue>tempValue){
-				tempValue=earth.totalValue();
+			if(earth.totalValue>maxValue){
+				maxValue=earth.totalValue();
 				highestMatrix = copyWorld(matrix);
 			}
-			System.out.println(tempValue);
 		}
+		System.out.printf("The highest Value is: €%.2f million",maxValue/1000000 );
 
 		image = newImage(matrix);
 

@@ -118,8 +118,8 @@ public class HeuristicPolder {
 				if(notOnHouse(k, house.y - h-1)) {
 					world_matrix[k][house.y-h-1] = InitialPolder.CLEARANCE;
 				}
-				if(notOnHouse(k, house.y+house.len2+h+1)) {
-					world_matrix[k][house.y+house.len2+h+1] = InitialPolder.CLEARANCE;
+				if(notOnHouse(k, house.y+house.len2+h)) {
+					world_matrix[k][house.y+house.len2+h] = InitialPolder.CLEARANCE;
 				}
 			}
 
@@ -131,6 +131,7 @@ public class HeuristicPolder {
 					world_matrix[house.x+house.len1+h][l] = InitialPolder.CLEARANCE;
 				}
 			}
+			
 		}
 	}
 
@@ -140,8 +141,8 @@ public class HeuristicPolder {
 				if(notOnHouse(k, house.y - h-1)) {
 					world_matrix[k][house.y-h-1] = InitialPolder.NOTHING;
 				}
-				if(notOnHouse(k, house.y+house.len2+h+1)) {
-					world_matrix[k][house.y+house.len2+h+1] = InitialPolder.NOTHING;
+				if(notOnHouse(k, house.y+house.len2+h)) {
+					world_matrix[k][house.y+house.len2+h] = InitialPolder.NOTHING;
 				}
 			}
 
@@ -264,7 +265,7 @@ public class HeuristicPolder {
 			clearance ++;
 		}
 
-		return (int) (clearance-house.clearance())/10;
+		return (int) (clearance-house.clearance())/2;
 	}
 
 	double getValue(House house) {
@@ -282,7 +283,7 @@ public class HeuristicPolder {
 		}
 
 		int clearance = countClearance(house);
-		value = value + (clearance * (incWeight+1));
+		value = value * (clearance * (incWeight)+1);
 
 		house.setValue(value);
 		return value;
