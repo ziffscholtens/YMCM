@@ -34,11 +34,6 @@ public class Graphics  extends JComponent implements ChangeListener {
 		int a, r, g, b;
 		for(int y = 0; y < height; y++){
 			for(int x = 0; x < width; x++){
-	//			if(matrix[y][x].poison){
-	//				a = 100;
-	//			}else{
-	//				a = 255;
-	//			}
 				a = 255;
 				int code = matrix[x][y];
 				if(code == HOUSE) {
