@@ -24,7 +24,6 @@ public class HeuristicPolder {
 
 	void heuristic(){
 		int number = 0;
-		
 		for(int i=0; i<houseList.length;i++){
 			tempMatrix = copyWorld(world_matrix);
 			House tempHouse = houseList[number];

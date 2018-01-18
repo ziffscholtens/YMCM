@@ -70,14 +70,22 @@ public class InitialPolder {
 	}
 
 	void heuristic(){
+		int numberOfNoChanges = 0;
 		// heuristic is local optimum
-		for(int i = 0; i<500; i++){
+		while(numberOfNoChanges<1000){
 			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue);
 			world_matrix = copyWorld(heuristic.world_matrix);
 			houseList = copyHouseList(heuristic.houseList);
+			if(totalValue>=heuristic.totalValue){
+				numberOfNoChanges++;
+			}
+			else{
+				numberOfNoChanges=0;
+			}
 			totalValue = heuristic.totalValue;
 		}
-		// heuristic polder
+		
+		// heuristic in de buurt zoeken, dus plus x of min x. (nieuwe class van maken?)
 
 	}
 
