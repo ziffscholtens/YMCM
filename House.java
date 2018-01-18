@@ -10,7 +10,7 @@ public class House {
 	int y;
 	int len1;
 	int len2;
-	//Coordinates coordinates;
+	
 	
 	House(){
 	}
