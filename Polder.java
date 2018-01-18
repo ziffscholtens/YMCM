@@ -3,6 +3,7 @@ package amstelhaege;
 import java.util.Random;
 
 public class Polder {
+	// NOT IN USE IN THE CURRENT VERSION
 	final int POLDER_WIDTH = 1700;
 	final int POLDER_HEIGHT = 2000;
 
