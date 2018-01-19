@@ -6,7 +6,7 @@ public class HeuristicPolder {
 
 	double totalValue = 0;
 	int[][] world_matrix;
-	int[][] tempMatrix;
+	int[][] temp_matrix;
 	House[] houseList;
 	House newHouse;
 
@@ -25,20 +25,23 @@ public class HeuristicPolder {
 	void heuristic(){
 		int number = 0;
 		for(int i=0; i<houseList.length;i++){
-			tempMatrix = copyWorld(world_matrix);
+			temp_matrix = copyWorld(world_matrix);
 			House tempHouse = houseList[number];
 			removeHouseOnMatrix(tempHouse);
 			removeClearance(tempHouse);
 			renewClearance(number);
+			
+			
 			placeHouse(tempHouse);
 			
 			double tempTotalValue = totalValue();
 			if(tempTotalValue > totalValue){
 				totalValue = tempTotalValue;
 				houseList[number] = newHouse;
+				System.out.printf("Old max updated to %.2f at number %d \n", totalValue, number);
+				world_matrix = copyWorld(temp_matrix);
 			}
 			else{
-				world_matrix = copyWorld(tempMatrix);
 			}
 			number++;
 		}
@@ -72,7 +75,7 @@ public class HeuristicPolder {
 		if(outOfBounds(x,y)) {
 			return false;
 		} else {
-			return (world_matrix[x][y] != InitialPolder.HOUSE);
+			return (temp_matrix[x][y] != InitialPolder.HOUSE);
 		}
 	}
 
@@ -80,7 +83,7 @@ public class HeuristicPolder {
 		for(int i = startX; i < len1+startX; i++) {
 			for(int j = startY; j < len2+startY; j++) {
 				if(!outOfBounds(i,j)) {
-					if(world_matrix[i][j] != InitialPolder.NOTHING) {
+					if(temp_matrix[i][j] != InitialPolder.NOTHING) {
 						return false;
 					}
 				} else {
@@ -95,7 +98,7 @@ public class HeuristicPolder {
 		for(int i = house.x; i < house.len1+house.x; i++) {
 			for(int j = house.y; j < house.len2+house.y; j++) {
 				if(!outOfBounds(i,j)) {
-					world_matrix[i][j] = InitialPolder.HOUSE;
+					temp_matrix[i][j] = InitialPolder.HOUSE;
 				}
 			}
 		}
@@ -105,29 +108,29 @@ public class HeuristicPolder {
 		for(int i = house.x; i < house.len1+house.x; i++) {
 			for(int j = house.y; j < house.len2+house.y; j++) {
 				if(!outOfBounds(i,j)) {
-					world_matrix[i][j] = InitialPolder.NOTHING;
+					temp_matrix[i][j] = InitialPolder.NOTHING;
 				}
 			}
 		}
 	}
 
 	void placeClearance(House house) {
-		for(int h = 0; h < house.clearance(); h++) {
+		for(int h = 0; h < house.minClearance(); h++) {
 			for(int k = house.x-h; k < house.x+h+house.len1; k++) {
 				if(notOnHouse(k, house.y - h-1)) {
-					world_matrix[k][house.y-h-1] = InitialPolder.CLEARANCE;
+					temp_matrix[k][house.y-h-1] = InitialPolder.CLEARANCE;
 				}
 				if(notOnHouse(k, house.y+house.len2+h)) {
-					world_matrix[k][house.y+house.len2+h] = InitialPolder.CLEARANCE;
+					temp_matrix[k][house.y+house.len2+h] = InitialPolder.CLEARANCE;
 				}
 			}
 
 			for(int l = house.y-h; l < house.y+h+house.len2; l++) {
 				if(notOnHouse(house.x-h-1, l)) {
-					world_matrix[house.x-h-1][l] = InitialPolder.CLEARANCE;
+					temp_matrix[house.x-h-1][l] = InitialPolder.CLEARANCE;
 				}
 				if(notOnHouse(house.x+house.len1+h, l)) {
-					world_matrix[house.x+house.len1+h][l] = InitialPolder.CLEARANCE;
+					temp_matrix[house.x+house.len1+h][l] = InitialPolder.CLEARANCE;
 				}
 			}
 			
@@ -135,22 +138,22 @@ public class HeuristicPolder {
 	}
 
 	void removeClearance(House house) {
-		for(int h = 0; h < house.clearance(); h++) {
+		for(int h = 0; h < house.minClearance(); h++) {
 			for(int k = house.x-h; k < house.x+h+house.len1; k++) {
 				if(notOnHouse(k, house.y - h-1)) {
-					world_matrix[k][house.y-h-1] = InitialPolder.NOTHING;
+					temp_matrix[k][house.y-h-1] = InitialPolder.NOTHING;
 				}
 				if(notOnHouse(k, house.y+house.len2+h)) {
-					world_matrix[k][house.y+house.len2+h] = InitialPolder.NOTHING;
+					temp_matrix[k][house.y+house.len2+h] = InitialPolder.NOTHING;
 				}
 			}
 
 			for(int l = house.y-h; l < house.y+h+house.len2; l++) {
 				if(notOnHouse(house.x-h-1, l)) {
-					world_matrix[house.x-h-1][l] = InitialPolder.NOTHING;
+					temp_matrix[house.x-h-1][l] = InitialPolder.NOTHING;
 				}
 				if(notOnHouse(house.x+house.len1+h, l)) {
-					world_matrix[house.x+house.len1+h][l] = InitialPolder.NOTHING;
+					temp_matrix[house.x+house.len1+h][l] = InitialPolder.NOTHING;
 				}
 			}
 		}
@@ -238,12 +241,12 @@ public class HeuristicPolder {
 
 			for(int k = house.x-clearance; k < house.x+clearance+house.len1; k++) {
 				if(!outOfBounds(k, house.y-clearance-1)) {
-					if(world_matrix[k][house.y-clearance-1] == InitialPolder.HOUSE) {
+					if(temp_matrix[k][house.y-clearance-1] == InitialPolder.HOUSE) {
 						clear = false;
 					}
 				}
 				if(!outOfBounds(k, house.y+house.len2+clearance+1)) {
-					if(world_matrix[k][house.y+house.len2+clearance+1] == InitialPolder.HOUSE) {
+					if(temp_matrix[k][house.y+house.len2+clearance+1] == InitialPolder.HOUSE) {
 						clear = false;
 					}
 				}
@@ -251,12 +254,12 @@ public class HeuristicPolder {
 
 			for(int l = house.y-clearance; l < house.y+clearance+house.len2; l++) {
 				if(!outOfBounds(house.x-clearance-1, l)) {
-					if(world_matrix[house.x-clearance-1][l] == InitialPolder.HOUSE) {
+					if(temp_matrix[house.x-clearance-1][l] == InitialPolder.HOUSE) {
 						clear = false;
 					}
 				}
 				if(!outOfBounds(house.x+house.len1+clearance, l)) {
-					if(world_matrix[house.x+house.len1+clearance][l] == InitialPolder.HOUSE) {
+					if(temp_matrix[house.x+house.len1+clearance][l] == InitialPolder.HOUSE) {
 						clear = false;
 					}
 				}
@@ -264,7 +267,7 @@ public class HeuristicPolder {
 			clearance ++;
 		}
 
-		return (int) (clearance-house.clearance())/2;
+		return (int) (clearance-house.minClearance())/2;
 	}
 
 	double getValue(House house) {
@@ -334,7 +337,7 @@ public class HeuristicPolder {
 				if(genFamHouse(x,y)) {
 					notPlaced = false;
 				}
-				// IMPLEMENT PLACEMENT OF WATER
+			
 			}
 		}
 
