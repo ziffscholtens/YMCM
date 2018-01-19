@@ -6,7 +6,7 @@ public class InitialPolder {
 	final static int POLDER_WIDTH = 340;
 	final static int POLDER_HEIGHT = 400;
 
-	final static int TOTAL = 40;
+	final static int TOTAL = 100;
 	final static double PERC_FAM = 0.5;
 	final static double PERC_BUNG = 0.3;
 	final static double PERC_MANS = 0.2;
@@ -47,24 +47,26 @@ public class InitialPolder {
 	Random rand = new Random();
 
 	InitialPolder(){
-		//	int size=WORLD_SIZE;
+		//creates a new polder, on which the heuristic can be applied
 		int height = POLDER_HEIGHT;
 		int width = POLDER_WIDTH;
 		world_matrix= new int[width][height];
 		houseList = new House[TOTAL];
 		placedNum = 0;
-		//	pop=ORG_POP;
-		//	gen=1;
-		//	iterations=0;
+		
 		for(int i=0;i<width;i++){
 			for(int j=0;j<height;j++){
 				world_matrix[i][j]= 0;
 			}
 		}
+		//generate and place the houses
 		generatePlaceHouse();
+		//calculate the total value
 		totalValue = totalValue();
-		System.out.println("first value = "+totalValue);
-		heuristic();
+		System.out.printf("The inital value = %.2f \n", totalValue);
+		//uncomment next line to apply heuristic
+	//	heuristic();
+		//print the highest ever found value
 		printTotalValue();
 
 	}
@@ -72,7 +74,7 @@ public class InitialPolder {
 	void heuristic(){
 		int numberOfNoChanges = 0;
 		// heuristic is local optimum
-		while(numberOfNoChanges<1000){
+		while(numberOfNoChanges<50){
 			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue);
 			world_matrix = copyWorld(heuristic.world_matrix);
 			houseList = copyHouseList(heuristic.houseList);
@@ -91,6 +93,7 @@ public class InitialPolder {
 
 
 	House[] copyHouseList(House[] original){
+		//copy a houselist
 		House[] copy = new House[original.length];
 		for(int i = 0; i<original.length; i++) {
 			House object = original[i];
@@ -100,6 +103,7 @@ public class InitialPolder {
 
 	}
 	int[][] copyWorld(int[][] original){
+		//copy a matrix
 		int[][] copy = new int[InitialPolder.POLDER_WIDTH][InitialPolder.POLDER_HEIGHT];
 		for(int i = 0; i<InitialPolder.POLDER_WIDTH; i++) {
 			for(int j = 0; j<InitialPolder.POLDER_HEIGHT; j++) {
@@ -120,6 +124,7 @@ public class InitialPolder {
 			int x = rand.nextInt(POLDER_WIDTH);
 			int y = rand.nextInt(POLDER_HEIGHT);
 			String lining1, lining2;
+			//gen random lining of the house
 			if(Math.random() > 0.5) {
 				lining1 = "vertical";
 				lining2 = "horizontal";
@@ -127,8 +132,10 @@ public class InitialPolder {
 				lining1 = "horizontal";
 				lining2 = "vertical";
 			}
-
+			
+			//check if there can still be placed mansions
 			if(mansions < TOTAL * PERC_MANS) {
+				//check if the generated coordinate is suiting for a mansion and place it if so
 				if(genMansion(x,y, lining1)) {
 					placedNum ++;
 					mansions++;
@@ -137,6 +144,7 @@ public class InitialPolder {
 					mansions++;
 				}
 			}
+			//do the same for other housetypes
 			else if(bungalows < TOTAL * PERC_BUNG) {
 				if(genBungalow(x,y, lining1)) {
 					placedNum ++;
@@ -151,7 +159,6 @@ public class InitialPolder {
 					placedNum ++;
 					fam++;
 				}
-				// IMPLEMENT PLACEMENT OF WATER
 			}
 		}
 
@@ -159,10 +166,12 @@ public class InitialPolder {
 
 
 	boolean outOfBounds(int x, int y) {
+		//check if the coordinate is out of bounds
 		return (x < 0 || x > POLDER_WIDTH-1 || y < 0 || y > POLDER_HEIGHT-1);
 	}
 
 	boolean notOnHouse(int x, int y) {
+		//check if the coordinate contains a house
 		if(outOfBounds(x,y)) {
 			return false;
 		} else {
@@ -171,6 +180,7 @@ public class InitialPolder {
 	}
 
 	boolean legalProperty(int startX, int startY, int len1, int len2) {
+		//check if a house can be placed on the given spot
 		for(int i = startX; i < len1+startX; i++) {
 			for(int j = startY; j < len2+startY; j++) {
 				if(!outOfBounds(i,j)) {
@@ -186,6 +196,7 @@ public class InitialPolder {
 	}
 
 	void placeHouseOnMatrix(House house) {
+		//place the house on the matrix
 		for(int i = house.x; i < house.len1+house.x; i++) {
 			for(int j = house.y; j < house.len2+house.y; j++) {
 				if(!outOfBounds(i,j)) {
@@ -196,7 +207,8 @@ public class InitialPolder {
 	}
 
 	void placeClearance(House house) {
-		for(int h = 0; h < house.clearance(); h++) {
+		//place the clearance of the house on the matrix
+		for(int h = 0; h < house.minClearance(); h++) {
 			for(int k = house.x-h; k < house.x+h+house.len1; k++) {
 				if(notOnHouse(k, house.y - h-1)) {
 					world_matrix[k][house.y-h-1] = CLEARANCE;
@@ -218,6 +230,7 @@ public class InitialPolder {
 	}
 
 	boolean genMansion(int startX, int startY, String lining) {
+		//check if placement is possible and if so, place the house and its clearance.
 		boolean placed = false;
 		int len1;
 		int len2;
@@ -274,6 +287,7 @@ public class InitialPolder {
 	}
 
 	boolean genFamHouse(int startX, int startY) {
+		//this type of house is a square so there is no lining
 		boolean placed = false;
 		int len1 = LEN1_FAM;
 		int len2 = LEN2_FAM;
@@ -294,8 +308,8 @@ public class InitialPolder {
 	}
 
 	boolean checkProperty(int startX, int startY, int len1, int len2) {
-		// vertically outlined
-
+		//not used anymore
+		
 		for(int i = startX; i < startX+len1; i++) {
 			for(int j = startY; i < startY+len2; j++) {
 				if(world_matrix[i][j] == HOUSE || world_matrix[i][j] == WATER || world_matrix[i][j] == CLEARANCE) {
@@ -308,6 +322,7 @@ public class InitialPolder {
 	}
 
 	int countClearance(House house) {
+		// count the clearance on top of the minimal clearance
 		int clearance = 0;
 		boolean clear = true;
 
@@ -341,10 +356,11 @@ public class InitialPolder {
 			clearance ++;
 		}
 
-		return (int) (clearance-house.clearance())/2;
+		return (int) (clearance-house.minClearance())/2;
 	}
 
 	double getValue(House house) {
+		//calculate the value of the house
 		double value = 0;
 		double incWeight = 0;
 		if (house.type == MANSION) {
@@ -369,6 +385,7 @@ public class InitialPolder {
 	}
 
 	double totalValue() {
+		// calculate the total value
 		double totalValue = 0;
 		for(int i = 0; i < placedNum; i++) {
 			totalValue = totalValue + getValue(houseList[i]);
@@ -383,4 +400,3 @@ public class InitialPolder {
 	}
 
 }
-
