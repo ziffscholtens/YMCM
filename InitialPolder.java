@@ -65,17 +65,18 @@ public class InitialPolder {
 		totalValue = totalValue();
 		System.out.printf("The inital value = %.2f \n", totalValue);
 		//uncomment next line to apply heuristic
-	//	heuristic();
+		hillClimberHeuristic();
+	//	simulatedAnnealingHeuristic();
 		//print the highest ever found value
 		printTotalValue();
 
 	}
 
-	void heuristic(){
+	void hillClimberHeuristic(){
 		int numberOfNoChanges = 0;
 		// heuristic is local optimum
-		while(numberOfNoChanges<50){
-			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue);
+		while(numberOfNoChanges<100){
+			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue, "hillClimber");
 			world_matrix = copyWorld(heuristic.world_matrix);
 			houseList = copyHouseList(heuristic.houseList);
 			if(totalValue>=heuristic.totalValue){
@@ -90,6 +91,16 @@ public class InitialPolder {
 		// heuristic in de buurt zoeken, dus plus x of min x. (nieuwe class van maken?)
 
 	}
+	
+	void simulatedAnnealingHeuristic() {
+		for(int runs = 0; runs < 10; runs++) {
+			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue, "simAnnealing");
+			world_matrix = copyWorld(heuristic.world_matrix);
+			houseList = copyHouseList(heuristic.houseList);
+			totalValue = heuristic.totalValue;
+			System.out.println("run" + runs + "is finished");
+			}
+		}
 
 
 	House[] copyHouseList(House[] original){
