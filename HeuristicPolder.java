@@ -12,17 +12,23 @@ public class HeuristicPolder {
 
 	Random rand = new Random();
 
-	HeuristicPolder(int[][] initialWorldMatrix, House[] initialHouseList, double initialTotalValue){
+	HeuristicPolder(int[][] initialWorldMatrix, House[] initialHouseList, double initialTotalValue, String heuristic){
 
 		int height = InitialPolder.POLDER_HEIGHT;
 		int width = InitialPolder.POLDER_WIDTH;
 		world_matrix = copyWorld(initialWorldMatrix);
 		houseList = copyHouseList(initialHouseList);
 		totalValue = initialTotalValue;
-		heuristic();
+		if(heuristic.contains("hillClimber")) {
+			hillClimber();
+		}
+		if(heuristic.contains("simAnnealing")) {
+			simulatedAnnealing();
+		}
+		
 	}
 
-	void heuristic(){
+	void hillClimber(){
 		int number = 0;
 		for(int i=0; i<houseList.length;i++){
 			temp_matrix = copyWorld(world_matrix);
@@ -41,11 +47,72 @@ public class HeuristicPolder {
 				System.out.printf("Old max updated to %.2f at number %d \n", totalValue, number);
 				world_matrix = copyWorld(temp_matrix);
 			}
-			else{
-			}
 			number++;
 		}
 	}
+	
+	void simulatedAnnealing() {
+		int number = 0;
+		double c = 3;
+		for(int i=0; i<houseList.length;i++){
+			temp_matrix = copyWorld(world_matrix);
+			House tempHouse = houseList[number];
+			House copy = tempHouse.copy();
+			double storedValue = totalValue();
+			System.out.println("nummer " + number);
+			removeHouseOnMatrix(tempHouse);
+			removeClearance(tempHouse);
+			renewClearance(number);
+						
+			for(int j = -3; j < 4; j++) {
+				for(int k = -3; k < 4; k++) {
+					copy.x = tempHouse.x+j;
+					copy.y = tempHouse.y+k;				
+				
+					System.out.println(copy.x + " " + copy.y);
+					if(legalProperty(copy.x, copy.y, copy.len1, copy.len2)) {
+						System.out.println("legal");
+						placeHouse(copy);
+						double tempTotalValue = totalValue();
+						if(tempTotalValue > storedValue){
+							tempHouse = copy;
+							storedValue = tempTotalValue;
+						}
+						/*else {
+							double probability = logarithm(totalValue - tempTotalValue, c);
+							double randVal = Math.random();
+							if (randVal < probability) {
+								tempHouse = copy;
+								storedValue = tempTotalValue;
+								c += 1;
+							}
+							
+						}
+						*/
+					} 
+					else {
+						System.out.println("not legal");
+					}
+			}
+				System.out.println("House replaced");			
+		}
+			placeHouse(tempHouse);
+			houseList[number] = tempHouse;
+			System.out.printf("Old max updated to %.2f at number %d \n", totalValue, number);
+			world_matrix = copyWorld(temp_matrix);
+			number++;		
+	}
+	}
+	
+	double logarithm (double diff, double c) {
+		double param = diff/c;
+		if(param > 1) {
+			return Math.log(diff / c);
+		} else {
+			return 0;
+		}
+	}
+
 
 	House[] copyHouseList(House[] original){
 		House[] copy = new House[original.length];
@@ -56,6 +123,7 @@ public class HeuristicPolder {
 		return(copy);
 		
 	}
+	
 	int[][] copyWorld(int[][] original){
 		int[][] copy = new int[InitialPolder.POLDER_WIDTH][InitialPolder.POLDER_HEIGHT];
 		for(int i = 0; i<InitialPolder.POLDER_WIDTH; i++) {
