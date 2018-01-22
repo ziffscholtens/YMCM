@@ -4,6 +4,8 @@ import java.util.Random;
 
 public class HeuristicPolder {
 
+	static final int MAX_TRIES_HEUR = 50000;
+	
 	double totalValue = 0;
 	int[][] world_matrix;
 	int[][] temp_matrix;
@@ -442,7 +444,8 @@ public class HeuristicPolder {
 
 	void placeHouse(House house) {
 		boolean notPlaced = true;
-		while(notPlaced) {
+		int tries=0;
+		while(notPlaced && tries<MAX_TRIES_HEUR) {
 			//gen random coordinate
 
 			int x = rand.nextInt(InitialPolder.POLDER_WIDTH);
@@ -476,6 +479,7 @@ public class HeuristicPolder {
 				}
 
 			}
+			tries++;
 		}
 
 	}
