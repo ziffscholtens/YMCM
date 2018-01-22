@@ -8,16 +8,19 @@ public class HeuristicPolder {
 	int[][] world_matrix;
 	int[][] temp_matrix;
 	House[] houseList;
+	Water[] waterList;
+	
 	House newHouse;
 
 	Random rand = new Random();
 
-	HeuristicPolder(int[][] initialWorldMatrix, House[] initialHouseList, double initialTotalValue, String heuristic){
+	HeuristicPolder(int[][] initialWorldMatrix, House[] initialHouseList, double initialTotalValue, Water[] waterList, String heuristic){
 
 		int height = InitialPolder.POLDER_HEIGHT;
 		int width = InitialPolder.POLDER_WIDTH;
 		world_matrix = copyWorld(initialWorldMatrix);
 		houseList = copyHouseList(initialHouseList);
+		this.waterList = waterList;
 		totalValue = initialTotalValue;
 		if(heuristic.contains("hillClimber")) {
 			hillClimber();
@@ -25,8 +28,24 @@ public class HeuristicPolder {
 		if(heuristic.contains("simAnnealing")) {
 			simulatedAnnealing();
 		}
-		
+
 	}
+	
+	void renewWater() {
+		for (int i = 0; i < waterList.length; i++) {
+			Water w = waterList[i];
+			placeWater(w.x, w.y, w.len1, w.len2);
+		}
+	}
+	
+	void placeWater(int x, int y, int len1, int len2) {
+		for(int i = x; i < x+len1 ; i++) {
+			for(int j = y; j < y+len2; j++) {
+				world_matrix[i][j] = InitialPolder.WATER;		
+			}
+		}
+	}
+
 
 	void hillClimber(){
 		int number = 0;
@@ -35,11 +54,12 @@ public class HeuristicPolder {
 			House tempHouse = houseList[number];
 			removeHouseOnMatrix(tempHouse);
 			removeClearance(tempHouse);
+			renewWater();
 			renewClearance(number);
-			
-			
+
+
 			placeHouse(tempHouse);
-			
+
 			double tempTotalValue = totalValue();
 			if(tempTotalValue > totalValue){
 				totalValue = tempTotalValue;
@@ -50,35 +70,40 @@ public class HeuristicPolder {
 			number++;
 		}
 	}
-	
+
 	void simulatedAnnealing() {
 		int number = 0;
-		double c = 3;
+	//	double c = 3;
 		for(int i=0; i<houseList.length;i++){
 			temp_matrix = copyWorld(world_matrix);
 			House tempHouse = houseList[number];
+			
+			System.out.println("de coordinaten zijn "+tempHouse.x +" "+tempHouse.y);
 			House copy = tempHouse.copy();
 			double storedValue = totalValue();
 			System.out.println("nummer " + number);
 			removeHouseOnMatrix(tempHouse);
 			removeClearance(tempHouse);
 			renewClearance(number);
-						
-			for(int j = -3; j < 4; j++) {
-				for(int k = -3; k < 4; k++) {
-					copy.x = tempHouse.x+j;
-					copy.y = tempHouse.y+k;				
-				
-					System.out.println(copy.x + " " + copy.y);
-					if(legalProperty(copy.x, copy.y, copy.len1, copy.len2)) {
-						System.out.println("legal");
-						placeHouse(copy);
-						double tempTotalValue = totalValue();
-						if(tempTotalValue > storedValue){
-							tempHouse = copy;
-							storedValue = tempTotalValue;
-						}
-						/*else {
+
+			int [] cord = direction(Math.random());
+
+			copy.setX(tempHouse.x+cord[0]);
+			copy.setY(tempHouse.y+cord[1]);			
+
+			System.out.println(copy.x + " " + copy.y);
+			if(legalProperty(copy.x, copy.y, copy.len1, copy.len2, copy.minClearance())) {
+				System.out.println("legal");
+				removeHouseOnMatrix(tempHouse);
+				removeClearance(tempHouse);
+				renewClearance(number);
+				replaceHouse(copy);
+				double tempTotalValue = totalValue();
+				if(tempTotalValue > storedValue){
+					tempHouse = copy;
+					storedValue = tempTotalValue;
+				}
+				/*else {
 							double probability = logarithm(totalValue - tempTotalValue, c);
 							double randVal = Math.random();
 							if (randVal < probability) {
@@ -86,24 +111,52 @@ public class HeuristicPolder {
 								storedValue = tempTotalValue;
 								c += 1;
 							}
-							
+
 						}
-						*/
-					} 
-					else {
-						System.out.println("not legal");
-					}
-			}
+				 */
 				System.out.println("House replaced");			
+				replaceHouse(tempHouse);
+				houseList[number] = newHouse;
+				System.out.printf("Old max updated to %.2f at number %d \n", totalValue, number);
+				world_matrix = copyWorld(temp_matrix);
+				number++;		
+			} 
+			else {
+				System.out.println("not legal");
+			}
 		}
-			placeHouse(tempHouse);
-			houseList[number] = tempHouse;
-			System.out.printf("Old max updated to %.2f at number %d \n", totalValue, number);
-			world_matrix = copyWorld(temp_matrix);
-			number++;		
 	}
+
+
+	int[] direction(double d) {
+		int x = 0;
+		int y = 0;
+
+		if(d < .125) {
+			x = -1;
+			y = -1;
+		} else if (d < .25) {
+			y = -1;
+		} else if(d < .375) {
+			x = 1;
+			y = -1;
+		} else if(d < .5) {
+			x = -1;
+		} else if(d < .625) {
+			x = 1;
+		} else if(d < .75) {
+			x = -1;
+			y = 1;
+		} else if(d < .875) {
+			y = 1;
+		} else if (d < 1) {
+			x = 1;
+			y = 1;
+		}		
+
+		return new int[] {x,y};
 	}
-	
+
 	double logarithm (double diff, double c) {
 		double param = diff/c;
 		if(param > 1) {
@@ -121,9 +174,9 @@ public class HeuristicPolder {
 			copy[i] = object;
 		}
 		return(copy);
-		
+
 	}
-	
+
 	int[][] copyWorld(int[][] original){
 		int[][] copy = new int[InitialPolder.POLDER_WIDTH][InitialPolder.POLDER_HEIGHT];
 		for(int i = 0; i<InitialPolder.POLDER_WIDTH; i++) {
@@ -147,7 +200,9 @@ public class HeuristicPolder {
 		}
 	}
 
-	boolean legalProperty(int startX, int startY, int len1, int len2) {
+	boolean legalProperty(int startX, int startY, int len1, int len2, int minClearance) {
+		len1+= minClearance;
+		len2+= minClearance;
 		for(int i = startX; i < len1+startX; i++) {
 			for(int j = startY; j < len2+startY; j++) {
 				if(!outOfBounds(i,j)) {
@@ -201,7 +256,7 @@ public class HeuristicPolder {
 					temp_matrix[house.x+house.len1+h][l] = InitialPolder.CLEARANCE;
 				}
 			}
-			
+
 		}
 	}
 
@@ -240,7 +295,7 @@ public class HeuristicPolder {
 			len2 = InitialPolder.LEN1_MANS;
 		}
 
-		if(legalProperty(startX,startY,len1,len2)) {
+		if(legalProperty(startX,startY,len1,len2,InitialPolder.MIN_CLEAR_MANS)) {
 			placed = true;
 		}
 
@@ -267,7 +322,7 @@ public class HeuristicPolder {
 			len2 = InitialPolder.LEN1_BUNG;
 		}
 
-		if(legalProperty(startX,startY,len1,len2)) {
+		if(legalProperty(startX,startY,len1,len2,InitialPolder.MIN_CLEAR_BUNG)) {
 			placed = true;
 		}
 
@@ -286,7 +341,7 @@ public class HeuristicPolder {
 		int len1 = InitialPolder.LEN1_FAM;
 		int len2 = InitialPolder.LEN2_FAM;
 
-		if(legalProperty(startX,startY,len1,len2)) {
+		if(legalProperty(startX,startY,len1,len2,InitialPolder.MIN_CLEAR_FAM)) {
 			placed = true;
 		}
 
@@ -370,6 +425,20 @@ public class HeuristicPolder {
 		}
 		return totalValue;
 	}
+	
+	void replaceHouse(House house) {
+		int len1 = house.len1;
+		int len2 = house.len2;
+		int x = house.x;
+		int y = house.y;
+
+
+		House newHouse = new House(x, y, len1, len2, house.type);
+		placeHouseOnMatrix(newHouse);
+		placeClearance(newHouse);
+		this.newHouse = newHouse;
+	
+	}
 
 	void placeHouse(House house) {
 		boolean notPlaced = true;
@@ -405,7 +474,7 @@ public class HeuristicPolder {
 				if(genFamHouse(x,y)) {
 					notPlaced = false;
 				}
-			
+
 			}
 		}
 
