@@ -1,17 +1,13 @@
 package amstelhaege;
 
 public class House {
-	/*
-	 * Coordinates kan Linksboven rechtsonder of Alle Hoeken
-	 */
 	double value;
 	int type; //0 for Mansion, 1 for Bungalow, 2 for Family House
 	int x;
 	int y;
 	int len1;
 	int len2;
-	
-	
+
 	House(){
 	}
 	
@@ -21,15 +17,15 @@ public class House {
 		this.len1 = len1;
 		this.len2 = len2;
 		this.type = type;
-//		this.coordinates = coordinates;
+
 	}
 	
 	void setValue(double worth) {
 		value = worth;
 	}
 	
-	double clearance() {
-		double clearance = 0;
+	int minClearance() {
+		int clearance = 0;
 		if(type == InitialPolder.MANSION) {
 			clearance = InitialPolder.MIN_CLEAR_MANS;
 		} else if (type == InitialPolder.BUNGALOW) {
@@ -40,7 +36,16 @@ public class House {
 		return clearance;
 	}
 	
-//	Coordinates getCoordinates(){
-//		return coordinates;
-//	}
+	House copy() {
+		return new House(x,y,len1,len2,type);
+	}
+	
+	void setX(int newX) {
+		this.x = newX;
+	}
+	
+	void setY(int newY) {
+		this.y = newY;
+	}
+	
 }
