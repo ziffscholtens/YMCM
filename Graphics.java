@@ -178,7 +178,7 @@ public class Graphics  extends JComponent implements ChangeListener {
     }
     
     void refreshImage(ActionEvent e){
-  //  	matrix = earth.iterate();
+    //	matrix = earth.iterate();
 		// img = newImage(matrix);
 		// image=img;
 	 //    frame.setTitle("Population: "+earth.pop+"\t Generation :"+earth.gen);
