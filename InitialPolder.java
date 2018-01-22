@@ -10,6 +10,7 @@ public class InitialPolder {
 	final static double PERC_FAM = 0.5;
 	final static double PERC_BUNG = 0.3;
 	final static double PERC_MANS = 0.2;
+	final static double PERC_WATER = 0.2;
 	final static int MIN_CLEAR_FAM = 4;
 	final static int MIN_CLEAR_BUNG = 6;
 	final static int MIN_CLEAR_MANS = 12;
@@ -43,6 +44,7 @@ public class InitialPolder {
 	int[][] init_environment;
 
 	House[] houseList;
+	Water[] waterList = new Water[10000];
 
 	Random rand = new Random();
 
@@ -53,20 +55,21 @@ public class InitialPolder {
 		world_matrix= new int[width][height];
 		houseList = new House[TOTAL];
 		placedNum = 0;
-		
+
 		for(int i=0;i<width;i++){
 			for(int j=0;j<height;j++){
-				world_matrix[i][j]= 0;
+				world_matrix[i][j]= NOTHING;
 			}
 		}
 		//generate and place the houses
+		generatePlaceWater();
 		generatePlaceHouse();
 		//calculate the total value
 		totalValue = totalValue();
 		System.out.printf("The inital value = %.2f \n", totalValue);
 		//uncomment next line to apply heuristic
 		hillClimberHeuristic();
-	//	simulatedAnnealingHeuristic();
+		//simulatedAnnealingHeuristic();
 		//print the highest ever found value
 		printTotalValue();
 
@@ -74,9 +77,10 @@ public class InitialPolder {
 
 	void hillClimberHeuristic(){
 		int numberOfNoChanges = 0;
+		//		int runs = 0;
 		// heuristic is local optimum
-		while(numberOfNoChanges<100){
-			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue, "hillClimber");
+		while(numberOfNoChanges < 100){
+			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue, waterList, "hillClimber");
 			world_matrix = copyWorld(heuristic.world_matrix);
 			houseList = copyHouseList(heuristic.houseList);
 			if(totalValue>=heuristic.totalValue){
@@ -85,22 +89,23 @@ public class InitialPolder {
 			else{
 				numberOfNoChanges=0;
 			}
+			//			runs++;
 			totalValue = heuristic.totalValue;
 		}
-		
+
 		// heuristic in de buurt zoeken, dus plus x of min x. (nieuwe class van maken?)
 
 	}
-	
+
 	void simulatedAnnealingHeuristic() {
-		for(int runs = 0; runs < 10; runs++) {
-			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue, "simAnnealing");
+		for(int runs = 0; runs < 100; runs++) {
+			HeuristicPolder heuristic = new HeuristicPolder(world_matrix, houseList, totalValue, waterList, "simAnnealing");
 			world_matrix = copyWorld(heuristic.world_matrix);
 			houseList = copyHouseList(heuristic.houseList);
 			totalValue = heuristic.totalValue;
 			System.out.println("run" + runs + "is finished");
-			}
 		}
+	}
 
 
 	House[] copyHouseList(House[] original){
@@ -124,12 +129,131 @@ public class InitialPolder {
 		}
 		return(copy);
 	}
+	/*
+	void generatePlaceWater() {
+		int bodies = 0;
+		double waterBlocks = 0.0;
+		double neededWater = POLDER_WIDTH*POLDER_HEIGHT*PERC_WATER;
+		System.out.println("needed water = "+neededWater);
+
+		while(waterBlocks < neededWater) {
+			if(Math.random() > 0.5) {
+				int x = rand.nextInt(POLDER_WIDTH);
+				for(int y = 0; y<POLDER_WIDTH; y++) {
+					for(int i = x - 10; i < x+10; i++) {
+						if(!waterCheck(i,y)) {
+							if(waterBlocks < neededWater) {
+								world_matrix[i][y] = WATER;	
+								waterBlocks++;
+								System.out.println(i + " " + y);
+							}
+						}
+					}
+				}
+			} else {
+				int y = rand.nextInt(POLDER_HEIGHT);
+				for(int x = 0; x<POLDER_WIDTH; x++) {
+					for(int j = y - 10; j < y + 10; j++) {
+						if(!waterCheck(x,j)) {
+							if(waterBlocks < neededWater) {
+								world_matrix[x][j] = WATER;		
+								waterBlocks++;
+								System.out.println(x + " " + j);
+							}
+						}
+					}
+				}
+			}
+			bodies ++;
+		}
+		if(bodies > 4) {
+			for(int i=0;i<POLDER_WIDTH;i++){
+				for(int j=0;j<POLDER_HEIGHT;j++){
+					world_matrix[i][j]= NOTHING;
+				}
+			}
+			generatePlaceWater();
+		}
+	}
+	 */
+	void generatePlaceWater() {
+		int bodies = 0;
+		double waterBlocks = 0.0;
+		double neededWater = POLDER_WIDTH*POLDER_HEIGHT*PERC_WATER;
+
+		while(waterBlocks < neededWater) {
+			int x = rand.nextInt(POLDER_WIDTH);
+			int y = rand.nextInt(POLDER_HEIGHT);
+			int size = rand.nextInt(20);
+			size+=40;
+
+			if(Math.random() > .5) {
+				int xRat = rand.nextInt(4);
+				int len1 = size*xRat;
+				int len2 = size;
+				
+				if(legalWaterplace(x,y,len1,len2)) {
+					waterList[bodies] = new Water(x,y,len1,len2);
+					placeWater(x,y,len1,len2);
+					waterBlocks += (len1*len2);
+				}
+			} else {
+				int yRat = rand.nextInt(4);
+				int len1 = size;
+				int len2 = size*yRat;
+				
+				if(legalWaterplace(x,y,len1,len2)) {
+					Water newWater = new Water(x,y,len1,len2);
+					waterList[bodies] = newWater;
+					placeWater(x,y,len1,len2);
+					waterBlocks += (len1*len2);
+				}
+			}
+			bodies ++;
+		}
+		if(bodies > 4) {
+			for(int m=0;m<POLDER_WIDTH;m++){
+				for(int n=0;n<POLDER_HEIGHT;n++){
+					world_matrix[m][n]= NOTHING;
+				}
+			}
+			Water[] emptyList = new Water[10000];
+			waterList = emptyList;
+			generatePlaceWater();
+		}
+	}
+	
+	boolean legalWaterplace(int x, int y, int len1, int len2) {
+		for(int i = x; i < len1+x; i++) {
+			for(int j = y; j < len2+y; j++) {
+				if(!waterCheck(i,j)) {
+					if(world_matrix[i][j] != NOTHING) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	void placeWater(int x, int y, int len1, int len2) {
+		for(int i = x; i < x+len1 ; i++) {
+			for(int j = y; j < y+len2; j++) {
+				if(!waterCheck(i,j)) {
+					world_matrix[i][j] = WATER;		
+				}
+			}
+		}
+	}
 
 	void generatePlaceHouse() {
 		int mansions = 0;
 		int bungalows = 0;
 		int fam = 0;
-		while(placedNum < TOTAL) {
+		int tries = 0;
+		while(placedNum < TOTAL && tries < 50000) {
 			//gen random coordinate
 
 			int x = rand.nextInt(POLDER_WIDTH);
@@ -143,16 +267,18 @@ public class InitialPolder {
 				lining1 = "horizontal";
 				lining2 = "vertical";
 			}
-			
+
 			//check if there can still be placed mansions
 			if(mansions < TOTAL * PERC_MANS) {
 				//check if the generated coordinate is suiting for a mansion and place it if so
 				if(genMansion(x,y, lining1)) {
 					placedNum ++;
 					mansions++;
+					tries = 0;
 				} else if(genMansion(x,y, lining2)) {
 					placedNum ++;
 					mansions++;
+					tries = 0;
 				}
 			}
 			//do the same for other housetypes
@@ -160,17 +286,31 @@ public class InitialPolder {
 				if(genBungalow(x,y, lining1)) {
 					placedNum ++;
 					bungalows++;
+					tries = 0;
 				} else if (genBungalow(x,y, lining2)) {
 					placedNum ++;
 					bungalows++;
+					tries = 0;
 				}
 			}
 			else if(fam < TOTAL * PERC_FAM) {
 				if(genFamHouse(x,y)) {
 					placedNum ++;
 					fam++;
+					tries = 0;
+				} 
+			}
+			tries++;
+		}
+		if(tries >= 50000) {
+			for(int i=0;i<POLDER_WIDTH;i++){
+				for(int j=0;j<POLDER_HEIGHT;j++){
+					world_matrix[i][j]= NOTHING;
 				}
 			}
+			//generate and place the houses
+			generatePlaceWater();
+			generatePlaceHouse();
 		}
 
 	}
@@ -190,7 +330,11 @@ public class InitialPolder {
 		}
 	}
 
-	boolean legalProperty(int startX, int startY, int len1, int len2) {
+	boolean waterCheck(int x, int y) {
+		return (x < 0 || x > POLDER_WIDTH-1 || y < 0 || y > POLDER_HEIGHT-1 || world_matrix[x][y] == WATER);	
+	}
+
+	boolean legalProperty(int startX, int startY, int len1, int len2, int minClearance) {
 		//check if a house can be placed on the given spot
 		for(int i = startX; i < len1+startX; i++) {
 			for(int j = startY; j < len2+startY; j++) {
@@ -205,6 +349,21 @@ public class InitialPolder {
 		}
 		return true;
 	}
+	/*
+	boolean clearanceConflict(int startX, int startY, int len1, int len2, int minClearance) {
+
+		for(int i = startX+len1; i < len1+startX+ minClearance; i++) {
+			for(int j = startY+len2; j < len2+startY+minClearance; j++) {
+				if(!outOfBounds(i,j)) {
+					if(world_matrix[i][j] == HOUSE) {
+						return true;
+					} 
+				}
+			}
+		}
+		return false;
+	}
+	 */
 
 	void placeHouseOnMatrix(House house) {
 		//place the house on the matrix
@@ -254,7 +413,7 @@ public class InitialPolder {
 			len2 = LEN1_MANS;
 		}
 
-		if(legalProperty(startX,startY,len1,len2)) {
+		if(legalProperty(startX,startY,len1,len2,MIN_CLEAR_MANS)) {
 			placed = true;
 		}
 
@@ -282,7 +441,7 @@ public class InitialPolder {
 			len2 = LEN1_BUNG;
 		}
 
-		if(legalProperty(startX,startY,len1,len2)) {
+		if(legalProperty(startX,startY,len1,len2,MIN_CLEAR_BUNG)) {
 			placed = true;
 		}
 
@@ -303,7 +462,7 @@ public class InitialPolder {
 		int len1 = LEN1_FAM;
 		int len2 = LEN2_FAM;
 
-		if(legalProperty(startX,startY,len1,len2)) {
+		if(legalProperty(startX,startY,len1,len2,MIN_CLEAR_FAM)) {
 			placed = true;
 		}
 
@@ -320,7 +479,7 @@ public class InitialPolder {
 
 	boolean checkProperty(int startX, int startY, int len1, int len2) {
 		//not used anymore
-		
+
 		for(int i = startX; i < startX+len1; i++) {
 			for(int j = startY; i < startY+len2; j++) {
 				if(world_matrix[i][j] == HOUSE || world_matrix[i][j] == WATER || world_matrix[i][j] == CLEARANCE) {
