@@ -33,9 +33,13 @@ public class InitialPolder {
 	final static int HOUSE=1;
 	final static int WATER=2;
 	final static int CLEARANCE = 3;
+	final static int PLAYGROUND = 4;
+	final static int COVER_PLAYGROUND = 5;
 	final static int NOTHING=0;
+	
+	final static int MAX_TRIES = 50000;
 
-
+	int numberOfPlaygrounds = 0;
 	int placedNum = 0;
 	double totalValue = 0;
 
@@ -44,7 +48,7 @@ public class InitialPolder {
 	int[][] init_environment;
 
 	House[] houseList;
-	Water[] waterList = new Water[10000];
+	Water[] waterList;
 
 	Random rand = new Random();
 
@@ -62,8 +66,8 @@ public class InitialPolder {
 			}
 		}
 		//generate and place the houses
-	//	generatePlaceWater();
-
+		generatePlaceWater();
+		//generatePlacePlayground();
 		generatePlaceHouse();
 		//calculate the total value
 		totalValue = totalValue();
@@ -76,6 +80,9 @@ public class InitialPolder {
 
 	}
 
+	void generatePlacePlayground() {
+		
+	}
 	int[][] hillClimberHeuristic(){
 		int numberOfNoChanges = 0;
 		//		int runs = 0;
@@ -101,7 +108,6 @@ public class InitialPolder {
 		// heuristic in de buurt zoeken, dus plus x of min x. (nieuwe class van maken?)
 
 	}
-
 	void simulatedAnnealingHeuristic() {
 		int numberOfNoChanges = 0;
 		//		int runs = 0;
@@ -122,8 +128,6 @@ public class InitialPolder {
 		}
 		System.out.printf("Max is %.2f after sim \n", totalValue);
 	}
-
-
 	House[] copyHouseList(House[] original){
 		//copy a houselist
 		House[] copy = new House[original.length];
@@ -145,17 +149,19 @@ public class InitialPolder {
 		}
 		return(copy);
 	}
-
+	
 	void generatePlaceWater() {
 		int bodies = 0;
 		double waterBlocks = 0.0;
 		double neededWater = POLDER_WIDTH*POLDER_HEIGHT*PERC_WATER;
-
-		while(waterBlocks < neededWater) {
+		int numberOfTries = 0;
+		Water[] tempWaterList = new Water[1000];
+		
+		while(waterBlocks < neededWater && numberOfTries < InitialPolder.MAX_TRIES) {
 			int x = rand.nextInt(POLDER_WIDTH);
 			int y = rand.nextInt(POLDER_HEIGHT);
-			int size = rand.nextInt(20);
-			size+=40;
+			int size = rand.nextInt(10);
+			size+=50;
 
 			if(Math.random() > .5) {
 				int xRat = rand.nextInt(4);
@@ -163,9 +169,10 @@ public class InitialPolder {
 				int len2 = size;
 				
 				if(legalWaterplace(x,y,len1,len2)) {
-					waterList[bodies] = new Water(x,y,len1,len2);
+					tempWaterList[bodies] = new Water(x,y,len1,len2);
 					placeWater(x,y,len1,len2);
 					waterBlocks += (len1*len2);
+					bodies ++;
 				}
 			} else {
 				int yRat = rand.nextInt(4);
@@ -173,23 +180,27 @@ public class InitialPolder {
 				int len2 = size*yRat;
 				
 				if(legalWaterplace(x,y,len1,len2)) {
-					Water newWater = new Water(x,y,len1,len2);
-					waterList[bodies] = newWater;
+					tempWaterList[bodies] = new Water(x,y,len1,len2);;
 					placeWater(x,y,len1,len2);
 					waterBlocks += (len1*len2);
+					bodies ++;
 				}
 			}
-			bodies ++;
 		}
 		if(bodies > 4) {
 			for(int m=0;m<POLDER_WIDTH;m++){
 				for(int n=0;n<POLDER_HEIGHT;n++){
 					world_matrix[m][n]= NOTHING;
+					bodies =0;
 				}
 			}
-			Water[] emptyList = new Water[10000];
-			waterList = emptyList;
 			generatePlaceWater();
+		}
+		else{
+			waterList = new Water[bodies];
+			for(int i =0; i< bodies;i++){
+				waterList[i] = tempWaterList[i];
+			}
 		}
 	}
 	
@@ -223,7 +234,7 @@ public class InitialPolder {
 		int bungalows = 0;
 		int fam = 0;
 		int tries = 0;
-		while(placedNum < TOTAL && tries < 50000) {
+		while(placedNum < TOTAL && tries < MAX_TRIES) {
 			//gen random coordinate
 
 			int x = rand.nextInt(POLDER_WIDTH);
@@ -272,12 +283,14 @@ public class InitialPolder {
 			}
 			tries++;
 		}
-		if(tries >= 50000) {
+		if(tries >= MAX_TRIES) {
+			System.out.println("max tries");
 			for(int i=0;i<POLDER_WIDTH;i++){
 				for(int j=0;j<POLDER_HEIGHT;j++){
 					world_matrix[i][j]= NOTHING;
 				}
 			}
+			System.out.println("new run");
 			//generate and place the houses
 			generatePlaceWater();
 			generatePlaceHouse();

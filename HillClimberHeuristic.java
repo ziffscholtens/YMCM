@@ -27,8 +27,7 @@ public class HillClimberHeuristic {
 	
 	void renewWater() {
 		for (int i = 0; i < waterList.length; i++) {
-			Water w = waterList[i];
-			System.out.print(w.x + " " + w.y);
+			Water w = waterList[i]; 
 			if(!waterCheck(w.x,w.y)) {
 				placeWater(w.x, w.y, w.len1, w.len2);
 			}
@@ -55,7 +54,7 @@ public class HillClimberHeuristic {
 			House tempHouse = houseList[number];
 			removeHouseOnMatrix(tempHouse);
 			removeClearance(tempHouse);
-	//		renewWater();
+			renewWater();
 			renewClearance(number);
 
 
@@ -346,7 +345,8 @@ public class HillClimberHeuristic {
 
 	void placeHouse(House house) {
 		boolean notPlaced = true;
-		while(notPlaced) {
+		int numberOfRuns = 0;
+		while(notPlaced && numberOfRuns < InitialPolder.MAX_TRIES) {
 			//gen random coordinate
 
 			int x = rand.nextInt(InitialPolder.POLDER_WIDTH);
@@ -380,6 +380,7 @@ public class HillClimberHeuristic {
 				}
 
 			}
+			numberOfRuns++;
 		}
 
 	}
