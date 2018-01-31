@@ -9,20 +9,23 @@ public class HillClimberHeuristic {
 	int[][] temp_matrix;
 	House[] houseList;
 	Water[] waterList;
+	Playground[] playgroundList;
 	
 	House newHouse;
 
 	Random rand = new Random();
 
-	HillClimberHeuristic(int[][] initialWorldMatrix, House[] initialHouseList, double initialTotalValue, Water[] waterList){
+	HillClimberHeuristic(int[][] initialWorldMatrix, House[] initialHouseList, double initialTotalValue, Water[] waterList, Playground[] playgroundList){
 
 		int height = InitialPolder.POLDER_HEIGHT;
 		int width = InitialPolder.POLDER_WIDTH;
 		world_matrix = copyWorld(initialWorldMatrix);
 		houseList = copyHouseList(initialHouseList);
 		this.waterList = waterList;
+		this.playgroundList = playgroundList;
 		totalValue = initialTotalValue;
 		hillClimber();
+		renewWater();
 	}
 	
 	void renewWater() {
@@ -103,13 +106,13 @@ public class HillClimberHeuristic {
 		}
 	}
 
+	
 	boolean legalProperty(int startX, int startY, int len1, int len2, int minClearance) {
-		len1+= minClearance;
-		len2+= minClearance;
+		//check if a house can be placed on the given spot
 		for(int i = startX; i < len1+startX; i++) {
 			for(int j = startY; j < len2+startY; j++) {
-				if(!outOfBounds(i,j)) {
-					if(temp_matrix[i][j] != InitialPolder.NOTHING) {
+				if(!outOfBounds(i,j) && !clearanceConflict(startX, startY, len1, len2, minClearance)) {
+					if(world_matrix[i][j] != InitialPolder.NOTHING && world_matrix[i][j] != InitialPolder.PLAYGROUND) {
 						return false;
 					}
 				} else {
@@ -118,6 +121,20 @@ public class HillClimberHeuristic {
 			}
 		}
 		return true;
+	}
+
+	boolean clearanceConflict(int startX, int startY, int len1, int len2, int minClearance) {
+
+		for(int i = startX-minClearance; i < len1+startX+ minClearance; i++) {
+			for(int j = startY-minClearance; j < len2+startY+minClearance; j++) {
+				if(!outOfBounds(i,j)) {
+					if(world_matrix[i][j] == InitialPolder.HOUSE || world_matrix[i][j] == InitialPolder.PLAYGROUND) {
+						return true;
+					} 
+				}
+			}
+		}
+		return false;
 	}
 
 	void placeHouseOnMatrix(House house) {
@@ -325,6 +342,9 @@ public class HillClimberHeuristic {
 		double totalValue = 0;
 		for(int i = 0; i < houseList.length; i++) {
 			totalValue = totalValue + getValue(houseList[i]);
+		}
+		for(int j =0; j<playgroundList.length; j++){
+			totalValue = totalValue + InitialPolder.PRICE_PLAY;
 		}
 		return totalValue;
 	}

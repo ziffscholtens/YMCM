@@ -6,7 +6,7 @@ public class InitialPolder {
 	final static int POLDER_WIDTH = 340;
 	final static int POLDER_HEIGHT = 400;
 
-	final static int TOTAL = 100;
+	final static int TOTAL = 40;
 	final static double PERC_FAM = 0.5;
 	final static double PERC_BUNG = 0.3;
 	final static double PERC_MANS = 0.2;
@@ -20,6 +20,7 @@ public class InitialPolder {
 	final static double PRICE_FAM = 285000;
 	final static double PRICE_BUNG = 399000;
 	final static double PRICE_MANS = 610000;
+	final static double PRICE_PLAY =-500000;
 	final static double PRICE_INC_FAM = 0.03;
 	final static double PRICE_INC_BUNG = 0.04;
 	final static double PRICE_INC_MANS = 0.06;
@@ -29,15 +30,16 @@ public class InitialPolder {
 	final static int LEN2_BUNG = 15;
 	final static int LEN1_MANS = 22;
 	final static int LEN2_MANS = 21;
+	final static int LEN1_PLAY = 40;
+	final static int LEN2_PLAY = 60;
 
 	final static int HOUSE=1;
 	final static int WATER=2;
 	final static int CLEARANCE = 3;
 	final static int PLAYGROUND = 4;
-	final static int COVER_PLAYGROUND = 5;
 	final static int NOTHING=0;
-	
-	final static int MAX_TRIES = 50000;
+
+	final static int MAX_TRIES = 500000;
 
 	int numberOfPlaygrounds = 0;
 	int placedNum = 0;
@@ -49,6 +51,7 @@ public class InitialPolder {
 
 	House[] houseList;
 	Water[] waterList;
+	Playground[] playgroundList;
 
 	Random rand = new Random();
 
@@ -66,30 +69,104 @@ public class InitialPolder {
 			}
 		}
 		//generate and place the houses
-		generatePlaceWater();
-		//generatePlacePlayground();
-		generatePlaceHouse();
+		generatePlan();
 		//calculate the total value
 		totalValue = totalValue();
-		System.out.printf("The inital value = %.2f \n", totalValue);
+		System.out.printf("The initial value = %.2f \n", totalValue);
 		//uncomment next line(s) to apply heuristic
+		System.out.println("The Hillclimber is running");
 		world_matrix = hillClimberHeuristic();
-		simulatedAnnealingHeuristic();
+		//System.out.println("The Simulated Annealing is running");
+		//simulatedAnnealingHeuristic();
 		//print the highest ever found value
 		printTotalValue();
 
 	}
 
-	void generatePlacePlayground() {
+	void generatePlan() {
+		placingWater();
+		//generatePlaceWater();
+		placingPlayground();
 		
+		generatePlaceHouse();
 	}
+
+	//	int[][] iterateHillc() {
+	//		int i = 0;
+	//		HillClimberHeuristic heuristic = new HillClimberHeuristic(world_matrix, houseList, totalValue, waterList);
+	//		heuristic.iterate();
+	//		world_matrix = copyWorld(heuristic.world_matrix);
+	//		houseList = copyHouseList(heuristic.houseList);
+	//		totalValue = heuristic.totalValue;
+	//		return world_matrix;
+	//	}
+	//	
+	//	int[][] iterateSimA() {
+	//		return world_matrix;
+	//	}
+
+	void placingPlayground() {
+		int playgrounds = 0;
+		Playground[] tempPlayground = new Playground[1000];
+		int wantedPlaygrounds = 1; //between 1 and 4
+		int x1 = 200;
+		int y1 = 200;
+		int x2 = 0;
+		int y2 = 0;
+		int x3 = 0;
+		int y3 = 0;
+		int x4 = 0;
+		int y4 = 0;
+		int lenx1 = LEN1_PLAY;
+		int lenx2 = 0;
+		int lenx3 = 0;
+		int lenx4 = 0;
+
+		int leny1 = LEN2_PLAY;
+		int leny2 = 0;
+		int leny3 = 0;
+		int leny4 = 0;
+		if (wantedPlaygrounds>0){
+			if(legalPlaygroundPlace(x1,y1,lenx1,leny1)) {
+				tempPlayground[playgrounds] = new Playground(x1,y1,lenx1,leny1);;
+				placePlayground(x1,y1,lenx1,leny1);
+				playgrounds ++;
+			}
+		}
+		if (wantedPlaygrounds>1){
+			if(legalPlaygroundPlace(x2,y2,lenx2,leny2)) {
+				tempPlayground[playgrounds] = new Playground(x2,y2,lenx2,leny2);;
+				placePlayground(x2,y2,lenx2,leny2);
+				playgrounds ++;
+			}
+		}
+		if (wantedPlaygrounds>2){
+			if(legalPlaygroundPlace(x3,y3,lenx3,leny3)) {
+				tempPlayground[playgrounds] = new Playground(x3,y3,lenx3,leny3);;
+				placePlayground(x3,y3,lenx3,leny3);
+				playgrounds ++;
+			}
+		}
+		if (wantedPlaygrounds>3){
+			if(legalPlaygroundPlace(x4,y4,lenx4,leny4)) {
+				tempPlayground[playgrounds] = new Playground(x4,y4,lenx4,leny4);;
+				placePlayground(x4,y4,lenx4,leny4);
+				playgrounds ++;
+			}
+		}
+			playgroundList = new Playground[playgrounds];
+			for(int i =0; i< playgrounds;i++){
+				playgroundList[i] = tempPlayground[i];
+		}
+	}
+
 	int[][] hillClimberHeuristic(){
 		int numberOfNoChanges = 0;
 		//		int runs = 0;
 		// heuristic is local optimum
 		HillClimberHeuristic heuristic = null;
-		while(numberOfNoChanges < 1000){
-			heuristic = new HillClimberHeuristic(world_matrix, houseList, totalValue, waterList);
+		while(numberOfNoChanges < 100){
+			heuristic = new HillClimberHeuristic(world_matrix, houseList, totalValue, waterList, playgroundList);
 			world_matrix = copyWorld(heuristic.world_matrix);
 			houseList = copyHouseList(heuristic.houseList);
 			if(totalValue>=heuristic.totalValue){
@@ -101,7 +178,7 @@ public class InitialPolder {
 			//			runs++;
 			totalValue = heuristic.totalValue;
 		}
-		
+
 		System.out.printf("Max is %.2f after hillc \n", totalValue);
 		return heuristic.world_matrix;
 
@@ -149,14 +226,14 @@ public class InitialPolder {
 		}
 		return(copy);
 	}
-	
+
 	void generatePlaceWater() {
 		int bodies = 0;
 		double waterBlocks = 0.0;
 		double neededWater = POLDER_WIDTH*POLDER_HEIGHT*PERC_WATER;
 		int numberOfTries = 0;
 		Water[] tempWaterList = new Water[1000];
-		
+
 		while(waterBlocks < neededWater && numberOfTries < InitialPolder.MAX_TRIES) {
 			int x = rand.nextInt(POLDER_WIDTH);
 			int y = rand.nextInt(POLDER_HEIGHT);
@@ -167,7 +244,7 @@ public class InitialPolder {
 				int xRat = rand.nextInt(4);
 				int len1 = size*xRat;
 				int len2 = size;
-				
+
 				if(legalWaterplace(x,y,len1,len2)) {
 					tempWaterList[bodies] = new Water(x,y,len1,len2);
 					placeWater(x,y,len1,len2);
@@ -178,7 +255,7 @@ public class InitialPolder {
 				int yRat = rand.nextInt(4);
 				int len1 = size;
 				int len2 = size*yRat;
-				
+
 				if(legalWaterplace(x,y,len1,len2)) {
 					tempWaterList[bodies] = new Water(x,y,len1,len2);;
 					placeWater(x,y,len1,len2);
@@ -203,7 +280,87 @@ public class InitialPolder {
 			}
 		}
 	}
-	
+
+	void placingWater(){
+		double neededWater = POLDER_WIDTH*POLDER_HEIGHT*PERC_WATER;
+		int bodies = 0;
+		int placedWater=0;
+		Water[] tempWaterList = new Water[1000];
+		int wantedWater = 1; //between 1 and 4
+		int x1 = 0;
+		int y1 = 0;
+		int x2 = 0;
+		int y2 = 0;
+		int x3 = 0;
+		int y3 = 0;
+		int x4 = 0;
+		int y4 = 0;
+		int lenx1 = 340;
+		int lenx2 = 0;
+		int lenx3 = 0;
+		int lenx4 = 0;
+
+		int leny1 = 85;
+		int leny2 = 0;
+		int leny3 = 0;
+		int leny4 = 0;
+		if (wantedWater>0){
+			if(legalWaterplace(x1,y1,lenx1,leny1)) {
+				tempWaterList[bodies] = new Water(x1,y1,lenx1,leny1);;
+				placeWater(x1,y1,lenx1,leny1);
+				placedWater += (lenx1*leny1);
+				bodies ++;
+			}
+		}
+		if (wantedWater>1){
+			if(legalWaterplace(x2,y2,lenx2,leny2)) {
+				tempWaterList[bodies] = new Water(x2,y2,lenx2,leny2);;
+				placeWater(x2,y2,lenx2,leny2);
+				placedWater += (lenx2*leny2);
+				bodies ++;
+			}
+		}
+		if (wantedWater>2){
+			if(legalWaterplace(x3,y3,lenx3,leny3)) {
+				tempWaterList[bodies] = new Water(x3,y3,lenx3,leny3);;
+				placeWater(x3,y3,lenx3,leny3);
+				placedWater += (lenx3*leny3);
+				bodies ++;
+			}
+		}
+		if (wantedWater>3){
+			if(legalWaterplace(x4,y4,lenx4,leny4)) {
+				tempWaterList[bodies] = new Water(x4,y4,lenx4,leny4);;
+				placeWater(x4,y4,lenx4,leny4);
+				placedWater += (lenx4*leny4);
+				bodies ++;
+			}
+		}
+		if (placedWater<neededWater){
+			System.out.println("more water needed");
+		}
+
+		waterList = new Water[bodies];
+		for(int i =0; i< bodies;i++){
+			waterList[i] = tempWaterList[i];
+		}
+	}
+
+	boolean legalPlaygroundPlace(int x, int y, int len1, int len2) {
+		for(int i = x; i < len1+x; i++) {
+			for(int j = y; j < len2+y; j++) {
+				if(!playgroundCheck(i,j)) {
+					if(world_matrix[i][j] != NOTHING && world_matrix[i][j] != WATER) { 
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	boolean legalWaterplace(int x, int y, int len1, int len2) {
 		for(int i = x; i < len1+x; i++) {
 			for(int j = y; j < len2+y; j++) {
@@ -218,13 +375,21 @@ public class InitialPolder {
 		}
 		return true;
 	}
-	
+
 	void placeWater(int x, int y, int len1, int len2) {
 		for(int i = x; i < x+len1 ; i++) {
 			for(int j = y; j < y+len2; j++) {
 				if(!waterCheck(i,j)) {
 					world_matrix[i][j] = WATER;		
 				}
+			}
+		}
+	}
+	
+	void placePlayground(int x, int y, int len1, int len2) {
+		for(int i = x; i < x+len1 ; i++) {
+			for(int j = y; j < y+len2; j++) {
+					world_matrix[i][j] = PLAYGROUND;					
 			}
 		}
 	}
@@ -298,7 +463,6 @@ public class InitialPolder {
 
 	}
 
-
 	boolean outOfBounds(int x, int y) {
 		//check if the coordinate is out of bounds
 		return (x < 0 || x > POLDER_WIDTH-1 || y < 0 || y > POLDER_HEIGHT-1);
@@ -309,12 +473,16 @@ public class InitialPolder {
 		if(outOfBounds(x,y)) {
 			return false;
 		} else {
-			return (world_matrix[x][y] != HOUSE);
+			return (world_matrix[x][y] != HOUSE || world_matrix[x][y] != PLAYGROUND);
 		}
 	}
 
 	boolean waterCheck(int x, int y) {
 		return (x < 0 || x > POLDER_WIDTH-1 || y < 0 || y > POLDER_HEIGHT-1 || world_matrix[x][y] == WATER);	
+	}
+
+	boolean playgroundCheck(int x, int y) {
+		return (x < 0 || x > POLDER_WIDTH-1 || y < 0 || y > POLDER_HEIGHT-1 || world_matrix[x][y] == PLAYGROUND);	
 	}
 
 	boolean legalProperty(int startX, int startY, int len1, int len2, int minClearance) {
@@ -332,13 +500,12 @@ public class InitialPolder {
 		}
 		return true;
 	}
-	
-	boolean clearanceConflict(int startX, int startY, int len1, int len2, int minClearance) {
 
-		for(int i = startX+len1; i < len1+startX+ minClearance; i++) {
-			for(int j = startY+len2; j < len2+startY+minClearance; j++) {
+	boolean clearanceConflict(int startX, int startY, int len1, int len2, int minClearance) {
+		for(int i = startX-minClearance; i < len1+startX+ minClearance; i++) {
+			for(int j = startY-minClearance; j < len2+startY+minClearance; j++) {
 				if(!outOfBounds(i,j)) {
-					if(world_matrix[i][j] == HOUSE) {
+					if(world_matrix[i][j] == HOUSE || world_matrix[i][j] == PLAYGROUND) {
 						return true;
 					} 
 				}
@@ -346,7 +513,7 @@ public class InitialPolder {
 		}
 		return false;
 	}
-	
+
 
 	void placeHouseOnMatrix(House house) {
 		//place the house on the matrix
@@ -460,20 +627,6 @@ public class InitialPolder {
 		return placed;
 	}
 
-	boolean checkProperty(int startX, int startY, int len1, int len2) {
-		//not used anymore
-
-		for(int i = startX; i < startX+len1; i++) {
-			for(int j = startY; i < startY+len2; j++) {
-				if(world_matrix[i][j] == HOUSE || world_matrix[i][j] == WATER || world_matrix[i][j] == CLEARANCE) {
-					return false;
-				}
-			}
-
-		}
-		return true;
-	}
-
 	int countClearance(House house) {
 		// count the clearance on top of the minimal clearance
 		int clearance = 0;
@@ -483,12 +636,12 @@ public class InitialPolder {
 
 			for(int k = house.x-clearance; k < house.x+clearance+house.len1; k++) {
 				if(!outOfBounds(k, house.y-clearance-1)) {
-					if(world_matrix[k][house.y-clearance-1] == HOUSE) {
+					if(world_matrix[k][house.y-clearance-1] == HOUSE || world_matrix[k][house.y-clearance-1] == PLAYGROUND) {
 						clear = false;
 					}
 				}
 				if(!outOfBounds(k, house.y+house.len2+clearance+1)) {
-					if(world_matrix[k][house.y+house.len2+clearance] == HOUSE) {
+					if(world_matrix[k][house.y+house.len2+clearance] == HOUSE || world_matrix[k][house.y+house.len2+clearance] == PLAYGROUND) {
 						clear = false;
 					}
 				}
@@ -496,12 +649,12 @@ public class InitialPolder {
 
 			for(int l = house.y-clearance; l < house.y+clearance+house.len2; l++) {
 				if(!outOfBounds(house.x-clearance-1, l)) {
-					if(world_matrix[house.x-clearance-1][l] == HOUSE) {
+					if(world_matrix[house.x-clearance-1][l] == HOUSE || world_matrix[house.x-clearance-1][l] == PLAYGROUND) {
 						clear = false;
 					}
 				}
 				if(!outOfBounds(house.x+house.len1+clearance, l)) {
-					if(world_matrix[house.x+house.len1+clearance][l] == HOUSE) {
+					if(world_matrix[house.x+house.len1+clearance][l] == HOUSE || world_matrix[house.x+house.len1+clearance][l] == PLAYGROUND) {
 						clear = false;
 					}
 				}
@@ -534,7 +687,7 @@ public class InitialPolder {
 	}
 
 	void printTotalValue() {
-		System.out.printf("the total value of the project equals: €%.2f milion\n", totalValue/1000000);
+		//System.out.printf("the total value of the project equals: €%.2f milion\n", totalValue/1000000);
 	}
 
 	double totalValue() {
@@ -542,6 +695,9 @@ public class InitialPolder {
 		double totalValue = 0;
 		for(int i = 0; i < placedNum; i++) {
 			totalValue = totalValue + getValue(houseList[i]);
+		}
+		for(int j =0; j<playgroundList.length; j++){
+			totalValue = totalValue + PRICE_PLAY;
 		}
 		return totalValue;
 	}

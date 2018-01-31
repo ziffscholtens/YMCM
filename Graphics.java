@@ -18,6 +18,7 @@ public class Graphics  extends JComponent implements ChangeListener {
 	final int HOUSE=1;
 	final int WATER=2;
 	final int CLEARANCE=3;
+	final int PLAYGROUND = 4;
 	final int NOTHING=0;
 	final int NUMBER_OF_RUNS = 1;
 	
@@ -63,7 +64,11 @@ public class Graphics  extends JComponent implements ChangeListener {
 					r = 174;   //red
 					g = 137;   //green
 					b = 118;   //blue
-				}	else {
+				} else if (code == PLAYGROUND) {
+					r = 255;
+					g = 0;
+					b = 255;
+				} else {
 					r = 255;   //red
 					g = 255;   //green
 					b = 255;   //blue
@@ -178,28 +183,28 @@ public class Graphics  extends JComponent implements ChangeListener {
     }
     
     void refreshImage(ActionEvent e){
-    //	matrix = earth.iterate();
-		// img = newImage(matrix);
-		// image=img;
-	 //    frame.setTitle("Population: "+earth.pop+"\t Generation :"+earth.gen);
-	
-		// int w = getWidth();
-  //       int h = getHeight();
-  //       int imageWidth = img.getWidth();
-  //       int imageHeight = img.getHeight();
-  //       BufferedImage bi = new BufferedImage(
-  //               (int)(imageWidth*scale), 
-  //               (int)(imageHeight*scale), 
-  //               img.getType());
-  //       Graphics2D g2 = bi.createGraphics();
-  //       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-  //               RenderingHints.VALUE_ANTIALIAS_ON);
-  //       double x = (w - scale * imageWidth) / 2;
-  //       double y = (h - scale * imageHeight) / 2;
-  //       AffineTransform at = AffineTransform.getTranslateInstance(0, 0);
-  //       at.scale(scale, scale);
-  //       g2.drawRenderedImage(img, at);
-  //       setImage(bi);
+//    	matrix = earth.iterate();
+//    	img = newImage(matrix);
+//    	image=img;
+//	    frame.setTitle("Total Value: "+earth.totalValue);
+//	
+//		int w = getWidth();
+//		int h = getHeight();
+//        int imageWidth = img.getWidth();
+//        int imageHeight = img.getHeight();
+//         BufferedImage bi = new BufferedImage(
+//                 (int)(imageWidth*scale), 
+//                 (int)(imageHeight*scale), 
+//                 img.getType());
+//         Graphics2D g2 = bi.createGraphics();
+//         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+//                 RenderingHints.VALUE_ANTIALIAS_ON);
+//         double x = (w - scale * imageWidth) / 2;
+//         double y = (h - scale * imageHeight) / 2;
+//         AffineTransform at = AffineTransform.getTranslateInstance(0, 0);
+//         at.scale(scale, scale);
+//         g2.drawRenderedImage(img, at);
+//        setImage(bi);
     }
     JSlider getControl() {
         JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 500, 100);
