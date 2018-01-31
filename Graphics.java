@@ -65,9 +65,9 @@ public class Graphics  extends JComponent implements ChangeListener {
 					g = 137;   //green
 					b = 118;   //blue
 				} else if (code == PLAYGROUND) {
-					r = 255;
-					g = 0;
-					b = 255;
+					r = 216;
+					g = 195;
+					b = 80;
 				} else {
 					r = 255;   //red
 					g = 255;   //green

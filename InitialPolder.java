@@ -74,58 +74,41 @@ public class InitialPolder {
 		totalValue = totalValue();
 		System.out.printf("The initial value = %.2f \n", totalValue);
 		//uncomment next line(s) to apply heuristic
-		System.out.println("The Hillclimber is running");
 		world_matrix = hillClimberHeuristic();
-		//System.out.println("The Simulated Annealing is running");
 		//simulatedAnnealingHeuristic();
 		//print the highest ever found value
+		renewClearence();
 		printTotalValue();
 
 	}
 
 	void generatePlan() {
 		placingWater();
-		//generatePlaceWater();
 		placingPlayground();
-		
 		generatePlaceHouse();
 	}
-
-	//	int[][] iterateHillc() {
-	//		int i = 0;
-	//		HillClimberHeuristic heuristic = new HillClimberHeuristic(world_matrix, houseList, totalValue, waterList);
-	//		heuristic.iterate();
-	//		world_matrix = copyWorld(heuristic.world_matrix);
-	//		houseList = copyHouseList(heuristic.houseList);
-	//		totalValue = heuristic.totalValue;
-	//		return world_matrix;
-	//	}
-	//	
-	//	int[][] iterateSimA() {
-	//		return world_matrix;
-	//	}
 
 	void placingPlayground() {
 		int playgrounds = 0;
 		Playground[] tempPlayground = new Playground[1000];
-		int wantedPlaygrounds = 1; //between 1 and 4
-		int x1 = 200;
-		int y1 = 200;
-		int x2 = 0;
-		int y2 = 0;
-		int x3 = 0;
-		int y3 = 0;
-		int x4 = 0;
-		int y4 = 0;
-		int lenx1 = LEN1_PLAY;
-		int lenx2 = 0;
-		int lenx3 = 0;
-		int lenx4 = 0;
+		int wantedPlaygrounds = 2; //between 1 and 4
+		int x1 = 100;
+		int y1 = 100;
+		int x2 = 180;
+		int y2 = 260;
+		int x3 = 140;
+		int y3 = 70;
+		int x4 = 140;
+		int y4 = 290;
+		int lenx1 = LEN2_PLAY;
+		int lenx2 = LEN2_PLAY;
+		int lenx3 = LEN2_PLAY;
+		int lenx4 = LEN2_PLAY;
 
-		int leny1 = LEN2_PLAY;
-		int leny2 = 0;
-		int leny3 = 0;
-		int leny4 = 0;
+		int leny1 = LEN1_PLAY;
+		int leny2 = LEN1_PLAY;
+		int leny3 = LEN1_PLAY;
+		int leny4 = LEN1_PLAY;
 		if (wantedPlaygrounds>0){
 			if(legalPlaygroundPlace(x1,y1,lenx1,leny1)) {
 				tempPlayground[playgrounds] = new Playground(x1,y1,lenx1,leny1);;
@@ -154,16 +137,15 @@ public class InitialPolder {
 				playgrounds ++;
 			}
 		}
-			playgroundList = new Playground[playgrounds];
-			for(int i =0; i< playgrounds;i++){
-				playgroundList[i] = tempPlayground[i];
+		playgroundList = new Playground[playgrounds];
+		for(int i =0; i< playgrounds;i++){
+			playgroundList[i] = tempPlayground[i];
 		}
 	}
 
 	int[][] hillClimberHeuristic(){
+		System.out.println("The Hillclimber is running");
 		int numberOfNoChanges = 0;
-		//		int runs = 0;
-		// heuristic is local optimum
 		HillClimberHeuristic heuristic = null;
 		while(numberOfNoChanges < 100){
 			heuristic = new HillClimberHeuristic(world_matrix, houseList, totalValue, waterList, playgroundList);
@@ -175,17 +157,15 @@ public class InitialPolder {
 			else{
 				numberOfNoChanges=0;
 			}
-			//			runs++;
 			totalValue = heuristic.totalValue;
 		}
 
 		System.out.printf("Max is %.2f after hillc \n", totalValue);
 		return heuristic.world_matrix;
-
-		// heuristic in de buurt zoeken, dus plus x of min x. (nieuwe class van maken?)
-
 	}
+
 	void simulatedAnnealingHeuristic() {
+		System.out.println("The Simulated Annealing is running");
 		int numberOfNoChanges = 0;
 		//		int runs = 0;
 		// heuristic is local optimum
@@ -286,24 +266,27 @@ public class InitialPolder {
 		int bodies = 0;
 		int placedWater=0;
 		Water[] tempWaterList = new Water[1000];
-		int wantedWater = 1; //between 1 and 4
-		int x1 = 0;
+		int wantedWater = 2; //between 1 and 4
+		int x1 = 259;
 		int y1 = 0;
-		int x2 = 0;
-		int y2 = 0;
-		int x3 = 0;
-		int y3 = 0;
-		int x4 = 0;
-		int y4 = 0;
-		int lenx1 = 340;
-		int lenx2 = 0;
-		int lenx3 = 0;
-		int lenx4 = 0;
 
-		int leny1 = 85;
-		int leny2 = 0;
-		int leny3 = 0;
-		int leny4 = 0;
+		int x2 = 0;
+		int y2 = 229;
+
+		int x3 = 0;
+		int y3 = 314;
+
+		int x4 = 256;
+		int y4 = 314;
+		int lenx1 = 80;
+		int lenx2 = 80;
+		int lenx3 = 83;
+		int lenx4 = 83;
+
+		int leny1 = 170;
+		int leny2 = 170;
+		int leny3 = 83;
+		int leny4 = 83;
 		if (wantedWater>0){
 			if(legalWaterplace(x1,y1,lenx1,leny1)) {
 				tempWaterList[bodies] = new Water(x1,y1,lenx1,leny1);;
@@ -346,6 +329,12 @@ public class InitialPolder {
 		}
 	}
 
+	void renewClearence(){
+		for(int i=0; i<houseList.length; i++){
+			placeClearance(houseList[i]);
+		}
+	}
+
 	boolean legalPlaygroundPlace(int x, int y, int len1, int len2) {
 		for(int i = x; i < len1+x; i++) {
 			for(int j = y; j < len2+y; j++) {
@@ -385,11 +374,11 @@ public class InitialPolder {
 			}
 		}
 	}
-	
+
 	void placePlayground(int x, int y, int len1, int len2) {
 		for(int i = x; i < x+len1 ; i++) {
 			for(int j = y; j < y+len2; j++) {
-					world_matrix[i][j] = PLAYGROUND;					
+				world_matrix[i][j] = PLAYGROUND;					
 			}
 		}
 	}
@@ -707,5 +696,18 @@ public class InitialPolder {
 			System.out.println(getValue(houseList[i]));
 		}
 	}
+	//	int[][] iterateHillc() {
+	//		int i = 0;
+	//		HillClimberHeuristic heuristic = new HillClimberHeuristic(world_matrix, houseList, totalValue, waterList);
+	//		heuristic.iterate();
+	//		world_matrix = copyWorld(heuristic.world_matrix);
+	//		houseList = copyHouseList(heuristic.houseList);
+	//		totalValue = heuristic.totalValue;
+	//		return world_matrix;
+	//	}
+	//	
+	//	int[][] iterateSimA() {
+	//		return world_matrix;
+	//	}
 
 }

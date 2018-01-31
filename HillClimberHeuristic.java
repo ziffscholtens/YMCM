@@ -10,7 +10,7 @@ public class HillClimberHeuristic {
 	House[] houseList;
 	Water[] waterList;
 	Playground[] playgroundList;
-	
+
 	House newHouse;
 
 	Random rand = new Random();
@@ -21,30 +21,29 @@ public class HillClimberHeuristic {
 		int width = InitialPolder.POLDER_WIDTH;
 		world_matrix = copyWorld(initialWorldMatrix);
 		houseList = copyHouseList(initialHouseList);
-		this.waterList = waterList;
+		this.waterList = copyWaterList(waterList);
 		this.playgroundList = playgroundList;
 		totalValue = initialTotalValue;
 		hillClimber();
-		renewWater();
 	}
-	
+
 	void renewWater() {
 		for (int i = 0; i < waterList.length; i++) {
 			Water w = waterList[i]; 
-			if(!waterCheck(w.x,w.y)) {
-				placeWater(w.x, w.y, w.len1, w.len2);
-			}
+			placeWater(w.x, w.y, w.len1, w.len2);
 		}
 	}
-	
+
 	boolean waterCheck(int x, int y) {
 		return (x < 0 || x > InitialPolder.POLDER_WIDTH-1 || y < 0 || y > InitialPolder.POLDER_HEIGHT-1 || world_matrix[x][y] == InitialPolder.WATER);	
 	}
-	
+
 	void placeWater(int x, int y, int len1, int len2) {
 		for(int i = x; i < x+len1 ; i++) {
 			for(int j = y; j < y+len2; j++) {
-				world_matrix[i][j] = InitialPolder.WATER;		
+				if(!waterCheck(i,j)){
+					world_matrix[i][j] = InitialPolder.WATER;
+				}
 			}
 		}
 	}
@@ -59,8 +58,6 @@ public class HillClimberHeuristic {
 			removeClearance(tempHouse);
 			renewWater();
 			renewClearance(number);
-
-
 			placeHouse(tempHouse);
 
 			double tempTotalValue = totalValue();
@@ -77,6 +74,16 @@ public class HillClimberHeuristic {
 		House[] copy = new House[original.length];
 		for(int i = 0; i<original.length; i++) {
 			House object = original[i];
+			copy[i] = object;
+		}
+		return(copy);
+
+	}
+
+	Water[] copyWaterList(Water[] original){
+		Water[] copy = new Water[original.length];
+		for(int i = 0; i<original.length; i++) {
+			Water object = original[i];
 			copy[i] = object;
 		}
 		return(copy);
@@ -106,7 +113,7 @@ public class HillClimberHeuristic {
 		}
 	}
 
-	
+
 	boolean legalProperty(int startX, int startY, int len1, int len2, int minClearance) {
 		//check if a house can be placed on the given spot
 		for(int i = startX; i < len1+startX; i++) {
@@ -348,7 +355,7 @@ public class HillClimberHeuristic {
 		}
 		return totalValue;
 	}
-	
+
 	void replaceHouse(House house) {
 		int len1 = house.len1;
 		int len2 = house.len2;
@@ -360,7 +367,7 @@ public class HillClimberHeuristic {
 		placeHouseOnMatrix(newHouse);
 		placeClearance(newHouse);
 		this.newHouse = newHouse;
-	
+
 	}
 
 	void placeHouse(House house) {
