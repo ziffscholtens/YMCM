@@ -8,117 +8,258 @@ public class SimulatedAnnealing {
 	int[][] world_matrix;
 	int[][] temp_matrix;
 	House[] houseList;
-	Water[] waterList;
-
+	int itNum = 0;
 	House newHouse;
+	double oldVal;
+	int[][] old_mat;
+	House[] oldList;
 
 	Random rand = new Random();
 
-	SimulatedAnnealing(int[][] initialWorldMatrix, House[] initialHouseList, double initialTotalValue, Water[] waterList){
+	SimulatedAnnealing(int[][] initialWorldMatrix, House[] initialHouseList, double initialTotalValue){
 
-		int height = InitialPolder.POLDER_HEIGHT;
-		int width = InitialPolder.POLDER_WIDTH;
+		int height = Polder.POLDER_HEIGHT;
+		int width = Polder.POLDER_WIDTH;
 		world_matrix = copyWorld(initialWorldMatrix);
 		houseList = copyHouseList(initialHouseList);
-		this.waterList = waterList;
 		totalValue = initialTotalValue;
-		simulatedAnnealing();
-	}
-	void renewWater() {
-		for (int i = 0; i < waterList.length; i++) {
-			Water w = waterList[i];
-			System.out.print(w.x + " " + w.y);
-			if(!waterCheck(w.x,w.y)) {
-				placeWater(w.x, w.y, w.len1, w.len2);
-			}
-		}
+
+		oldVal = initialTotalValue;
+		old_mat = initialWorldMatrix;
+		oldList = initialHouseList;
 	}
 
-	boolean waterCheck(int x, int y) {
-		return (x < 0 || x > InitialPolder.POLDER_WIDTH-1 || y < 0 || y > InitialPolder.POLDER_HEIGHT-1 || world_matrix[x][y] == InitialPolder.WATER);	
+	void iterate() {
+		itNum = rand.nextInt(houseList.length);
+		temp_matrix = copyWorld(world_matrix);
+		House tempHouse = houseList[itNum];
+		removeHouseOnMatrix(tempHouse);
+		removeClearance(tempHouse);
+		renewClearance(itNum);
+
+		slideHouse(tempHouse);
+
+		totalValue = totalValue();	
+		houseList[itNum] = newHouse;
+		world_matrix = temp_matrix;
+
 	}
-
-	void placeWater(int x, int y, int len1, int len2) {
-		for(int i = x; i < x+len1 ; i++) {
-			for(int j = y; j < y+len2; j++) {
-				world_matrix[i][j] = InitialPolder.WATER;		
-			}
-		}
-	}
-	void simulatedAnnealing() {
-		int number = 0;
-		//	double c = 3;
-		for(int i=0; i<houseList.length;i++){
-			temp_matrix = copyWorld(world_matrix);
-			House tempHouse = houseList[number];
-
-			House copy = tempHouse.copy();
-
-			removeHouseOnMatrix(tempHouse);
-			removeClearance(tempHouse);
-			renewClearance(number);		
-
-			slideHouse(copy);
-
-			double tempTotalValue = totalValue();
-			if(tempTotalValue > totalValue){
-				totalValue = tempTotalValue;
-				houseList[number] = newHouse;
-				world_matrix = copyWorld(temp_matrix);
-			}
-			/*else {
-								double probability = logarithm(totalValue - tempTotalValue, c);
-								double randVal = Math.random();
-								if (randVal < probability) {
-									tempHouse = copy;
-									storedValue = tempTotalValue;
-									c += 1;
-								}
-							}
-			 */
-			number++;
-		}
-	}
-
-
 
 	int[] direction(double d) {
 		int x = 0;
 		int y = 0;
 
-		if(d < .125) {
-			x = -1;
-			y = -1;
-		} else if (d < .25) {
-			y = -1;
+		if(d <= .25) {
+			x = -5;
+		} else if (d > .25 && d <= .5) {
+			x = 5;
+		} else if (d > .5 && d <= .75) {
+			y = -5;
+		} else if (d > .75 && d <=1) {
+			y = 5;
+		}
+		/*
+		if(d <= .125) {
+			x = -10;
+			y = -10;
+		} else if (d <= .25) {
+			y = -10;
 		} else if(d < .375) {
-			x = 1;
-			y = -1;
+			x = 10;
+			y = -10;
 		} else if(d < .5) {
-			x = -1;
+			x = -10;
 		} else if(d < .625) {
-			x = 1;
+			x = 10;
 		} else if(d < .75) {
-			x = -1;
-			y = 1;
+			x = -10;
+			y = 10;
 		} else if(d < .875) {
-			y = 1;
+			y = 10;
 		} else if (d < 1) {
-			x = 1;
-			y = 1;
+			x = 10;
+			y = 10;
 		}		
+		 */
 
 		return new int[] {x,y};
 	}
 
+
+	boolean legalProperty(int startX, int startY, int len1, int len2, int minClearance) {
+		//check if a house can be placed on the given spot
+		for(int i = startX; i < len1+startX; i++) {
+			for(int j = startY; j < len2+startY; j++) {
+				//	System.out.println("Legal Property OOB geeft> " + outOfBounds(i,j));
+				//	System.out.println("Legal Property CC geeft> " + clearanceConflict(startX, startY, len1, len2, minClearance));
+				if(!outOfBounds(i,j) && !clearanceConflict(startX, startY, len1, len2, minClearance)) {
+					if(temp_matrix[i][j] != Polder.NOTHING) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	boolean clearanceConflict(int startX, int startY, int len1, int len2, int minClearance) {
+
+		boolean conflict = false;
+
+		for(int i = startX-minClearance; i < len1+startX+ minClearance; i++) {
+			for(int j = startY-minClearance; j < len2+startY+minClearance; j++) {
+				if(!outOfBounds(i,j)) {
+					if(temp_matrix[i][j] == Polder.HOUSE) {
+						conflict = true;
+					} 
+				}
+			}
+		}
+		return conflict;
+	}
+
+
+	void placeHouseOnMatrix(House house) {
+		for(int i = house.x; i < house.len1+house.x; i++) {
+			for(int j = house.y; j < house.len2+house.y; j++) {
+				//	System.out.println("place house on matrix OOB? " + outOfBounds(i,j));
+				if(!outOfBounds(i,j)){
+					temp_matrix[i][j] = Polder.HOUSE;
+				}
+			}
+		}
+	}
+
+	void replaceOld(House house) {
+		for(int i = house.x; i < house.len1+house.x; i++) {
+			for(int j = house.y; j < house.len2+house.y; j++) {
+				//		System.out.println("place house on matrix OOB? " + outOfBounds(i,j));
+				if(!outOfBounds(i,j)){
+					temp_matrix[i][j] = Polder.HOUSE;
+				}
+			}
+		}
+	}
+
+	void slideHouse(House house) {
+		boolean notPlaced = true;
+		int tries = 0;
+		House old = house.copy();
+		int a = house.len1;
+		int b = house.len2;
+
+		while(notPlaced && tries < 10) {
+			int[] cord = direction(Math.random());
+			house.setX(old.x+cord[0]);
+			house.setY(old.y+cord[1]);
+			if(Math.random() > 0.5) {
+				house.len2 = a;
+				house.len1 = b;
+			}
+			if(genHouse(house)) {
+				//		System.out.println("SLIDEHOUSE");
+				placeHouseOnMatrix(house);
+				placeClearance(house);
+				newHouse = house;
+				notPlaced = false;
+			}
+			tries ++;
+			if(tries == 10 && notPlaced) {
+				//		System.out.println("OLD");
+				replaceOld(old);
+				placeClearance(old);
+				newHouse = old;
+				return;
+			}
+		}
+		totalValue = totalValue();
+		if(totalValue < oldVal) {
+			double probability = logarithm(totalValue - oldVal, Graphics.c);
+			double randVal = Math.random();
+			double realProb = 1 - probability;
+			System.out.println("Probability of Accepting = " + probability);
+			System.out.println("RandVal = " + randVal);
+
+			if(randVal > realProb) {
+				houseList[itNum] = newHouse;
+				world_matrix = temp_matrix;
+				removeHouseOnMatrix(house);
+				removeClearance(house);
+				renewClearance(itNum);
+				replaceOld(old);
+				placeClearance(old);
+				newHouse = old;
+				houseList[itNum] = old;
+				
+				world_matrix = temp_matrix;
+				if(Graphics.c > 500) {
+					Graphics.c -= 500;
+				}
+			}
+		}
+
+	}
+
+	boolean genHouse(House house) {
+		boolean placed = false;
+
+		if(legalProperty(house.x,house.y,house.len1,house.len2,house.minClearance())) {
+			placed = true;
+		}
+
+		if(placed) {
+			House newHouse = new House(house.x,house.y,house.len1,house.len2,house.minClearance());
+			this.newHouse = newHouse;
+		}
+
+		return placed;
+	}
+
 	double logarithm (double diff, double c) {
+		System.out.println("diff: " + diff);
+		System.out.println("c: " + c);
 		double param = diff/c;
-		if(param > 1) {
-			return Math.log(diff / c);
+		System.out.println("param: " + param);
+		double prob = Math.exp(param);
+		System.out.println("gives: " + prob);
+
+		if(prob > 0 && prob < 1) {
+			return prob;
 		} else {
 			return 0;
 		}
 	}
+
+
+	void simulatedAnnealing() {
+		int number = 0;
+		for(int i=0; i<Polder.TOTAL;i++){
+		
+			oldVal = totalValue;
+			old_mat = world_matrix;
+			oldList = houseList;
+			
+			temp_matrix = copyWorld(world_matrix);
+			House tempHouse = houseList[number];
+
+			removeHouseOnMatrix(tempHouse);
+			removeClearance(tempHouse);
+			renewClearance(number);		
+
+			slideHouse(tempHouse);
+			
+			totalValue = totalValue();	
+			houseList[itNum] = newHouse;
+			world_matrix = temp_matrix;
+
+			number++;
+			
+			System.out.println("number "+ number);
+		}
+	}
+
 
 
 	House[] copyHouseList(House[] original){
@@ -132,9 +273,9 @@ public class SimulatedAnnealing {
 	}
 
 	int[][] copyWorld(int[][] original){
-		int[][] copy = new int[InitialPolder.POLDER_WIDTH][InitialPolder.POLDER_HEIGHT];
-		for(int i = 0; i<InitialPolder.POLDER_WIDTH; i++) {
-			for(int j = 0; j<InitialPolder.POLDER_HEIGHT; j++) {
+		int[][] copy = new int[Polder.POLDER_WIDTH][Polder.POLDER_HEIGHT];
+		for(int i = 0; i<Polder.POLDER_WIDTH; i++) {
+			for(int j = 0; j<Polder.POLDER_HEIGHT; j++) {
 				int object = original[i][j];
 				copy[i][j] = object;
 			}
@@ -143,49 +284,23 @@ public class SimulatedAnnealing {
 	}
 
 	boolean outOfBounds(int x, int y) {
-		return (x < 0 || x > InitialPolder.POLDER_WIDTH-1 || y < 0 || y > InitialPolder.POLDER_HEIGHT-1);
+		return (x < 0 || x > Polder.POLDER_WIDTH-1 || y < 0 || y > Polder.POLDER_HEIGHT-1);
 	}
 
 	boolean notOnHouse(int x, int y) {
 		if(outOfBounds(x,y)) {
 			return false;
 		} else {
-			return (temp_matrix[x][y] != InitialPolder.HOUSE);
+			return (temp_matrix[x][y] != Polder.HOUSE);
 		}
 	}
 
-	boolean legalProperty(int startX, int startY, int len1, int len2, int minClearance) {
-		len1+= minClearance;
-		len2+= minClearance;
-		for(int i = startX; i < len1+startX; i++) {
-			for(int j = startY; j < len2+startY; j++) {
-				if(!outOfBounds(i,j)) {
-					if(temp_matrix[i][j] != InitialPolder.NOTHING) {
-						return false;
-					}
-				} else {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	void placeHouseOnMatrix(House house) {
-		for(int i = house.x; i < house.len1+house.x; i++) {
-			for(int j = house.y; j < house.len2+house.y; j++) {
-				if(!outOfBounds(i,j)) {
-					temp_matrix[i][j] = InitialPolder.HOUSE;
-				}
-			}
-		}
-	}
 
 	void removeHouseOnMatrix(House house) {
 		for(int i = house.x; i < house.len1+house.x; i++) {
 			for(int j = house.y; j < house.len2+house.y; j++) {
 				if(!outOfBounds(i,j)) {
-					temp_matrix[i][j] = InitialPolder.NOTHING;
+					temp_matrix[i][j] = Polder.NOTHING;
 				}
 			}
 		}
@@ -194,20 +309,29 @@ public class SimulatedAnnealing {
 	void placeClearance(House house) {
 		for(int h = 0; h < house.minClearance(); h++) {
 			for(int k = house.x-h; k < house.x+h+house.len1; k++) {
-				if(notOnHouse(k, house.y - h-1)) {
-					temp_matrix[k][house.y-h-1] = InitialPolder.CLEARANCE;
+				if(!outOfBounds(k, house.y - h-1)){ 
+
+					if(notOnHouse(k, house.y - h-1)) {
+						temp_matrix[k][house.y-h-1] = Polder.CLEARANCE;
+					}
 				}
-				if(notOnHouse(k, house.y+house.len2+h)) {
-					temp_matrix[k][house.y+house.len2+h] = InitialPolder.CLEARANCE;
+				if(!outOfBounds(k, house.y+house.len2+h)){ 	
+					if(notOnHouse(k, house.y+house.len2+h)) {
+						temp_matrix[k][house.y+house.len2+h] = Polder.CLEARANCE;
+					}
 				}
 			}
 
 			for(int l = house.y-h; l < house.y+h+house.len2; l++) {
-				if(notOnHouse(house.x-h-1, l)) {
-					temp_matrix[house.x-h-1][l] = InitialPolder.CLEARANCE;
+				if(!outOfBounds(house.x-h-1, l)){ 
+					if(notOnHouse(house.x-h-1, l)) {
+						temp_matrix[house.x-h-1][l] = Polder.CLEARANCE;
+					}
 				}
-				if(notOnHouse(house.x+house.len1+h, l)) {
-					temp_matrix[house.x+house.len1+h][l] = InitialPolder.CLEARANCE;
+				if(!outOfBounds(house.x+house.len1+h, l)){ 
+					if(notOnHouse(house.x+house.len1+h, l)) {
+						temp_matrix[house.x+house.len1+h][l] = Polder.CLEARANCE;
+					}
 				}
 			}
 
@@ -218,67 +342,25 @@ public class SimulatedAnnealing {
 		for(int h = 0; h < house.minClearance(); h++) {
 			for(int k = house.x-h; k < house.x+h+house.len1; k++) {
 				if(notOnHouse(k, house.y - h-1)) {
-					temp_matrix[k][house.y-h-1] = InitialPolder.NOTHING;
+					temp_matrix[k][house.y-h-1] = Polder.NOTHING;
 				}
 				if(notOnHouse(k, house.y+house.len2+h)) {
-					temp_matrix[k][house.y+house.len2+h] = InitialPolder.NOTHING;
+					temp_matrix[k][house.y+house.len2+h] = Polder.NOTHING;
 				}
 			}
 
 			for(int l = house.y-h; l < house.y+h+house.len2; l++) {
 				if(notOnHouse(house.x-h-1, l)) {
-					temp_matrix[house.x-h-1][l] = InitialPolder.NOTHING;
+					temp_matrix[house.x-h-1][l] = Polder.NOTHING;
 				}
 				if(notOnHouse(house.x+house.len1+h, l)) {
-					temp_matrix[house.x+house.len1+h][l] = InitialPolder.NOTHING;
+					temp_matrix[house.x+house.len1+h][l] = Polder.NOTHING;
 				}
 			}
 		}
 	}
 
-	boolean genMansion(int startX, int startY, String lining) {
-		boolean placed = false;
-		int len1;
-		int len2;
 
-		if(lining.contains("vertical")) {
-			len1 = InitialPolder.LEN1_MANS;
-			len2 = InitialPolder.LEN2_MANS;
-		} else {
-			len1 = InitialPolder.LEN2_MANS;
-			len2 = InitialPolder.LEN1_MANS;
-		}
-
-		if(legalProperty(startX,startY,len1,len2,InitialPolder.MIN_CLEAR_MANS)) {
-			placed = true;
-		}
-
-		if(placed) {
-			House newHouse = new House(startX, startY, len1, len2, InitialPolder.MANSION);
-
-			placeHouseOnMatrix(newHouse);
-			placeClearance(newHouse);
-			this.newHouse = newHouse;
-		}
-		return placed;
-	}
-
-	boolean genHouse(House house) {
-		boolean placed = false;
-
-		if(legalProperty(house.x,house.y,house.len1,house.len2,house.minClearance())) {
-			placed = true;
-		}
-
-		if(placed) {
-			House newHouse = new House(house.x,house.y,house.len1,house.len2,house.minClearance());
-
-			placeHouseOnMatrix(newHouse);
-			placeClearance(newHouse);
-			this.newHouse = newHouse;
-		}
-		return placed;
-	}
 
 	int countClearance(House house) {
 		int clearance = 0;
@@ -288,12 +370,12 @@ public class SimulatedAnnealing {
 
 			for(int k = house.x-clearance; k < house.x+clearance+house.len1; k++) {
 				if(!outOfBounds(k, house.y-clearance-1)) {
-					if(temp_matrix[k][house.y-clearance-1] == InitialPolder.HOUSE) {
+					if(temp_matrix[k][house.y-clearance-1] == Polder.HOUSE) {
 						clear = false;
 					}
 				}
 				if(!outOfBounds(k, house.y+house.len2+clearance+1)) {
-					if(temp_matrix[k][house.y+house.len2+clearance+1] == InitialPolder.HOUSE) {
+					if(temp_matrix[k][house.y+house.len2+clearance+1] == Polder.HOUSE) {
 						clear = false;
 					}
 				}
@@ -301,12 +383,12 @@ public class SimulatedAnnealing {
 
 			for(int l = house.y-clearance; l < house.y+clearance+house.len2; l++) {
 				if(!outOfBounds(house.x-clearance-1, l)) {
-					if(temp_matrix[house.x-clearance-1][l] == InitialPolder.HOUSE) {
+					if(temp_matrix[house.x-clearance-1][l] == Polder.HOUSE) {
 						clear = false;
 					}
 				}
 				if(!outOfBounds(house.x+house.len1+clearance, l)) {
-					if(temp_matrix[house.x+house.len1+clearance][l] == InitialPolder.HOUSE) {
+					if(temp_matrix[house.x+house.len1+clearance][l] == Polder.HOUSE) {
 						clear = false;
 					}
 				}
@@ -320,15 +402,15 @@ public class SimulatedAnnealing {
 	double getValue(House house) {
 		double value = 0;
 		double incWeight = 0;
-		if (house.type == InitialPolder.MANSION) {
-			value += InitialPolder.PRICE_MANS;
-			incWeight = InitialPolder.PRICE_INC_MANS;
-		} else if (house.type == InitialPolder.BUNGALOW) {
-			value += InitialPolder.PRICE_BUNG;
-			incWeight = InitialPolder.PRICE_INC_BUNG;
-		} else if (house.type == InitialPolder.FAMILY_HOME) {
-			value += InitialPolder.PRICE_FAM;
-			incWeight = InitialPolder.PRICE_INC_FAM;
+		if (house.type == Polder.MANSION) {
+			value += Polder.PRICE_MANS;
+			incWeight = Polder.PRICE_INC_MANS;
+		} else if (house.type == Polder.BUNGALOW) {
+			value += Polder.PRICE_BUNG;
+			incWeight = Polder.PRICE_INC_BUNG;
+		} else if (house.type == Polder.FAMILY_HOME) {
+			value += Polder.PRICE_FAM;
+			incWeight = Polder.PRICE_INC_FAM;
 		}
 
 		int clearance = countClearance(house);
@@ -350,37 +432,6 @@ public class SimulatedAnnealing {
 		return totalValue;
 	}
 
-
-	void slideHouse(House house) {
-		boolean notPlaced = true;
-		int tries = 0;
-		House reserve = house.copy();
-		while(notPlaced && tries < 11) {
-
-			int[] cord = direction(Math.random());
-
-			house.setX(house.x+cord[0]);
-			house.setY(house.y+cord[1]);
-
-			int a = house.len1;
-			int b = house.len2;
-
-			if(Math.random() > 0.5) {
-				house.len2 = a;
-				house.len1 = b;
-			}
-
-			if(genHouse(house)) {
-				notPlaced = false;
-				tries = 0;
-			}
-			tries ++;
-		}
-		if(tries > 10) {
-			genHouse(reserve);
-		}
-
-	}
 
 
 
