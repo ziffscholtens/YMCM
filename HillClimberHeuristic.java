@@ -109,7 +109,7 @@ public class HillClimberHeuristic {
 		if(outOfBounds(x,y)) {
 			return false;
 		} else {
-			return (temp_matrix[x][y] != InitialPolder.HOUSE);
+			return (temp_matrix[x][y] != InitialPolder.HOUSE && temp_matrix[x][y] != InitialPolder.WATER);
 		}
 	}
 
@@ -119,7 +119,7 @@ public class HillClimberHeuristic {
 		for(int i = startX; i < len1+startX; i++) {
 			for(int j = startY; j < len2+startY; j++) {
 				if(!outOfBounds(i,j) && !clearanceConflict(startX, startY, len1, len2, minClearance)) {
-					if(world_matrix[i][j] != InitialPolder.NOTHING && world_matrix[i][j] != InitialPolder.PLAYGROUND) {
+					if(temp_matrix[i][j] != InitialPolder.NOTHING && temp_matrix[i][j] != InitialPolder.PLAYGROUND) {
 						return false;
 					}
 				} else {
@@ -135,7 +135,7 @@ public class HillClimberHeuristic {
 		for(int i = startX-minClearance; i < len1+startX+ minClearance; i++) {
 			for(int j = startY-minClearance; j < len2+startY+minClearance; j++) {
 				if(!outOfBounds(i,j)) {
-					if(world_matrix[i][j] == InitialPolder.HOUSE || world_matrix[i][j] == InitialPolder.PLAYGROUND) {
+					if(temp_matrix[i][j] == InitialPolder.HOUSE || temp_matrix[i][j] == InitialPolder.PLAYGROUND) {
 						return true;
 					} 
 				}

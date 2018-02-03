@@ -20,7 +20,7 @@ public class Graphics  extends JComponent implements ChangeListener {
 	final int CLEARANCE=3;
 	final int PLAYGROUND = 4;
 	final int NOTHING=0;
-	final int NUMBER_OF_RUNS = 1;
+	final int NUMBER_OF_RUNS = 20;
 	
 	JFrame frame;
 	InitialPolder earth;
@@ -30,6 +30,7 @@ public class Graphics  extends JComponent implements ChangeListener {
 	int width;
 	int height;
 	double maxValue=0;
+	static double c = 500000;
 
 	
 	BufferedImage newImage(int[][] matrix) {

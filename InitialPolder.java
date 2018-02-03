@@ -6,7 +6,7 @@ public class InitialPolder {
 	final static int POLDER_WIDTH = 340;
 	final static int POLDER_HEIGHT = 400;
 
-	final static int TOTAL = 40;
+	final static int TOTAL = 100;
 	final static double PERC_FAM = 0.5;
 	final static double PERC_BUNG = 0.3;
 	final static double PERC_MANS = 0.2;
@@ -39,7 +39,7 @@ public class InitialPolder {
 	final static int PLAYGROUND = 4;
 	final static int NOTHING=0;
 
-	final static int MAX_TRIES = 500000;
+	final static int MAX_TRIES = 100000;
 
 	int numberOfPlaygrounds = 0;
 	int placedNum = 0;
@@ -57,6 +57,21 @@ public class InitialPolder {
 
 	InitialPolder(){
 		//creates a new polder, on which the heuristic can be applied
+		//generate and place the houses
+		generatePlan();
+		//calculate the total value
+		totalValue = totalValue();
+		System.out.printf("The initial value = %.2f \n", totalValue);
+		//uncomment next line(s) to apply heuristic
+		world_matrix = hillClimberHeuristic();
+		simulatedAnnealingHeuristic();
+		//print the highest ever found value
+		renewClearence();
+		printTotalValue();
+
+	}
+
+	void generatePlan() {
 		int height = POLDER_HEIGHT;
 		int width = POLDER_WIDTH;
 		world_matrix= new int[width][height];
@@ -68,21 +83,6 @@ public class InitialPolder {
 				world_matrix[i][j]= NOTHING;
 			}
 		}
-		//generate and place the houses
-		generatePlan();
-		//calculate the total value
-		totalValue = totalValue();
-		System.out.printf("The initial value = %.2f \n", totalValue);
-		//uncomment next line(s) to apply heuristic
-		world_matrix = hillClimberHeuristic();
-		//simulatedAnnealingHeuristic();
-		//print the highest ever found value
-		renewClearence();
-		printTotalValue();
-
-	}
-
-	void generatePlan() {
 		placingWater();
 		placingPlayground();
 		generatePlaceHouse();
@@ -109,6 +109,7 @@ public class InitialPolder {
 		int leny2 = LEN1_PLAY;
 		int leny3 = LEN1_PLAY;
 		int leny4 = LEN1_PLAY;
+
 		if (wantedPlaygrounds>0){
 			if(legalPlaygroundPlace(x1,y1,lenx1,leny1)) {
 				tempPlayground[playgrounds] = new Playground(x1,y1,lenx1,leny1);;
@@ -169,8 +170,8 @@ public class InitialPolder {
 		int numberOfNoChanges = 0;
 		//		int runs = 0;
 		// heuristic is local optimum
-		while(numberOfNoChanges < 1000){
-			SimulatedAnnealing heuristic = new SimulatedAnnealing(world_matrix, houseList, totalValue, waterList);
+		while(numberOfNoChanges < 10000){
+			SimulatedAnnealing heuristic = new SimulatedAnnealing(world_matrix, houseList, totalValue, waterList, playgroundList);
 			world_matrix = copyWorld(heuristic.world_matrix);
 			houseList = copyHouseList(heuristic.houseList);
 			totalValue = heuristic.totalValue;
@@ -180,7 +181,7 @@ public class InitialPolder {
 			else{
 				numberOfNoChanges=0;
 			}
-			//			runs++;
+			
 			totalValue = heuristic.totalValue;
 		}
 		System.out.printf("Max is %.2f after sim \n", totalValue);
@@ -438,16 +439,16 @@ public class InitialPolder {
 			tries++;
 		}
 		if(tries >= MAX_TRIES) {
-			System.out.println("max tries");
 			for(int i=0;i<POLDER_WIDTH;i++){
 				for(int j=0;j<POLDER_HEIGHT;j++){
 					world_matrix[i][j]= NOTHING;
 				}
 			}
-			System.out.println("new run");
 			//generate and place the houses
-			generatePlaceWater();
-			generatePlaceHouse();
+			houseList = null;
+			waterList = null;
+			playgroundList = null;
+			generatePlan();
 		}
 
 	}
