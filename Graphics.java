@@ -97,7 +97,9 @@ public class Graphics  extends JComponent implements ChangeListener {
 		//this is the only relevant code
 		//tells how many times the code is ran
 		this.frame=frame;
+		System.out.print("run\tini\thill\tsim\n");
 		for (int i = 0; i<NUMBER_OF_RUNS;i++){
+			System.out.print(i+"\t");
 			earth= new InitialPolder();
 			width=InitialPolder.POLDER_WIDTH;
 			height=InitialPolder.POLDER_HEIGHT;

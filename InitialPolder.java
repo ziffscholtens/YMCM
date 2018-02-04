@@ -61,9 +61,10 @@ public class InitialPolder {
 		generatePlan();
 		//calculate the total value
 		totalValue = totalValue();
-		System.out.printf("The initial value = %.2f \n", totalValue);
+		System.out.print(totalValue+"\t");
+		//System.out.printf("The initial value = %.2f \n", totalValue);
 		//uncomment next line(s) to apply heuristic
-		world_matrix = hillClimberHeuristic();
+		//world_matrix = hillClimberHeuristic();
 		simulatedAnnealingHeuristic();
 		//print the highest ever found value
 		renewClearence();
@@ -145,7 +146,7 @@ public class InitialPolder {
 	}
 
 	int[][] hillClimberHeuristic(){
-		System.out.println("The Hillclimber is running");
+		//System.out.println("The Hillclimber is running");
 		int numberOfNoChanges = 0;
 		HillClimberHeuristic heuristic = null;
 		while(numberOfNoChanges < 100){
@@ -161,12 +162,13 @@ public class InitialPolder {
 			totalValue = heuristic.totalValue;
 		}
 
-		System.out.printf("Max is %.2f after hillc \n", totalValue);
+		//System.out.printf("Max is %.2f after hillc \n", totalValue);
+		System.out.print(totalValue+"\t");
 		return heuristic.world_matrix;
 	}
 
 	void simulatedAnnealingHeuristic() {
-		System.out.println("The Simulated Annealing is running");
+		//System.out.println("The Simulated Annealing is running");
 		int numberOfNoChanges = 0;
 		//		int runs = 0;
 		// heuristic is local optimum
@@ -184,7 +186,8 @@ public class InitialPolder {
 			
 			totalValue = heuristic.totalValue;
 		}
-		System.out.printf("Max is %.2f after sim \n", totalValue);
+		//System.out.printf("Max is %.2f after sim \n", totalValue);
+		System.out.print(totalValue+"\n");
 	}
 	House[] copyHouseList(House[] original){
 		//copy a houselist
