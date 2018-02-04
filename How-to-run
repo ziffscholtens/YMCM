@@ -1,0 +1,2 @@
+Run the whole program. In graphics the number of initial states can be changed. In InitialPolder the houses can be changed. 
+In InitialPolder() also the type of heuristic can be changed.
